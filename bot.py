@@ -7,7 +7,7 @@ rajan_id = 53845740
 kontopyrgou = 53889497
 
 DEX_board_id = 1355568860
-users_ids = [david_id, aman_id, rajan_id]
+users_ids = [david_id]
 
 def activate_bot():
 
@@ -17,15 +17,26 @@ def activate_bot():
         print('Updating prices...')
         for coin in coins:
             coin_value = coin['coin']
-            price, price_change = check_price(coin_value)
+            buy_price = coin['buy_price']
+            current_price, percentage_variation_daily, percentage_variation_weekly, percentage_variation_over_buy_price = check_price(coin_value, buy_price)
 
-            if price_change:
+            if percentage_variation_over_buy_price:
+                # make_update_over_price(item_id=coin['id'], value=percentage_variation_over_buy_price)
                 for id in users_ids:
-                    make_update_notification(user_id=id, item_id=coin['id'], value=price_change)
-                    make_update_over_price(item_id=coin['id'], value=price_change)
+                    make_update_notification(user_id=id, item_id=coin['id'], value=percentage_variation_over_buy_price)  
 
-            if price:
-                update_value(board_id=coin['board_id'], item_id=coin['id'], column_id=coin['column_id'], value=price, item_name=coin['coin']) 
+            if percentage_variation_daily:
+                # make_update_over_price(item_id=coin['id'], value=percentage_variation_daily)
+                for id in users_ids:
+                    make_update_notification(user_id=id, item_id=coin['id'], value=percentage_variation_daily)  
+
+            if percentage_variation_weekly:
+                # make_update_over_price(item_id=coin['id'], value=percentage_variation_weekly)
+                for id in users_ids:
+                    make_update_notification(user_id=id, item_id=coin['id'], value=percentage_variation_weekly)      
+
+            if current_price:
+                update_value(board_id=coin['board_id'], item_id=coin['id'], column_id=coin['column_id'], value=current_price, item_name=coin['coin']) 
             else:
                 update_value(board_id=coin['board_id'], item_id=coin['id'], column_id=coin['column_id'], value=0, item_name=coin['coin']) 
                
@@ -34,3 +45,4 @@ def activate_bot():
         # make_update_over_price(user_id=david_id, item_id=DEX_board_id, value=response['error'])
         return response['error'], 500
 
+activate_bot()

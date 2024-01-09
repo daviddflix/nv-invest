@@ -63,14 +63,18 @@ def get_values_column():
                         column_values = item['column_values']
 
                         symbol = None
+                        buy_price = None
                         for row in column_values:
                             if row['id'] == 'text':
                                 symbol = row['text'].casefold()
 
+                            if row['id'] == 'numbers6':
+                                buy_price = row['text']
+
                         for coin in list_of_coins:
                             if item_value == coin['name'].casefold() and symbol == coin['symbol'].casefold():
                                 item_name = coin['id']
-                                coins.append({'coin': item_name, 'id': item_id, 'board_id': board_id, 'column_id': column_id})
+                                coins.append({'coin': item_name, 'id': item_id, 'board_id': board_id, 'column_id': column_id, 'buy_price': buy_price})
 
                 print('Len: ', len(coins))
                 return {'coins': coins}
@@ -121,6 +125,7 @@ def make_update_over_price(item_id, value):
     except Exception as e:
         print(str(e))
         return False
+
 
 # Creates an update over a coin and notifies.
 def make_update_notification(user_id, item_id, value):

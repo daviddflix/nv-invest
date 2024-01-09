@@ -11,7 +11,7 @@ def index():
     try:
         command = request.args.get('command')
         if command == 'activate':
-            scheduler.add_job(activate_bot, 'interval', id='nv invest', days=1, next_run_time=datetime.now(), replace_existing=True)
+            scheduler.add_job(activate_bot, 'interval', id='nv invest', hours=1, next_run_time=datetime.now(), replace_existing=True)
             return 'NV Invest Bot activated'
         elif command == 'deactivate':
             scheduler.remove_job(job_id='nv invest')
