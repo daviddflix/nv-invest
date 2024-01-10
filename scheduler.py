@@ -20,13 +20,15 @@ def job_executed(event):
     
 def job_error(event):
     job_id = str(event.job_id).capitalize()
-    print(f'\nAn error occured in {job_id}, response: {event.retval}')
+    message = f'An error occured in {job_id}, response: {event.retval}'
+    print(message)
+    make_update_notification(user_id=david_id, item_id=DEX_board_id, value=message)
    
 def job_max_instances_reached(event): 
     job_id = str(event.job_id).capitalize()
     message = f'Maximum number of running instances reached, *Upgrade* the time interval for {job_id}'
     print(message)
-    # make_update_notification(user_id=david_id, item_id=DEX_board_id, value=message)
+    make_update_notification(user_id=david_id, item_id=DEX_board_id, value=message)
 
   
 

@@ -1,7 +1,11 @@
 # config.py
 import os
 from pathlib import Path
+from datetime import datetime
 from dotenv import load_dotenv
+from sqlalchemy.orm import relationship, sessionmaker
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy import Column, Integer, String, TIMESTAMP, ForeignKey, Boolean, create_engine
 
 load_dotenv()
 
@@ -15,3 +19,39 @@ DB_PASSWORD = os.getenv('DB_PASSWORD')
 DB_HOST = os.getenv('DB_HOST')
 
 db_url = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
+
+
+engine = create_engine(db_url)
+Base = declarative_base()
+
+class Coin(Base):
+    __tablename__ = 'monday_coin'
+    coin_id = Column(Integer, primary_key=True, nullable=False)
+    coin_name = Column(String, nullable=False)
+    column_id = Column(String, nullable=False)
+    board_name = Column(String, nullable=False)
+    board_id = Column(Integer, nullable=False)
+    buy_price = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP, default=datetime.utcnow)
+    updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
+
+    alerts = relationship('Alert', back_populates='coin')
+
+
+class Alert(Base):
+    __tablename__ = 'monday_alert'
+    alert_id = Column(Integer, primary_key=True, autoincrement=True)
+    alert_message = Column(String, nullable=False)
+    alert_type = Column(String, nullable=False)
+    coin_id = Column(Integer, ForeignKey('monday_coin.coin_id'), nullable=False)  
+    created_at = Column(TIMESTAMP, default=datetime.utcnow)
+    updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
+
+    coin = relationship('Coin', back_populates='alerts', lazy=True) 
+
+
+Base.metadata.create_all(engine)
+
+# Export the sql session
+Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
+session = Session()  

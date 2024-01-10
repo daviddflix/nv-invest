@@ -37,7 +37,7 @@ def get_values_column():
     DEX_board_id = 1355568860
 
     try:
-        response = monday.boards.fetch_items_by_board_id(board_ids=[DEX_board_id])
+        response = monday.boards.fetch_items_by_board_id(board_ids=[DEX_board_id, CEX_board_id])
         boards = response['data']['boards']
 
         if boards:
@@ -74,7 +74,7 @@ def get_values_column():
                         for coin in list_of_coins:
                             if item_value == coin['name'].casefold() and symbol == coin['symbol'].casefold():
                                 item_name = coin['id']
-                                coins.append({'coin': item_name, 'id': item_id, 'board_id': board_id, 'column_id': column_id, 'buy_price': buy_price})
+                                coins.append({'coin': item_name, 'id': item_id, 'board_id': board_id, 'column_id': column_id, 'buy_price': buy_price, 'board_name': board_name})
 
                 print('Len: ', len(coins))
                 return {'coins': coins}
@@ -114,6 +114,7 @@ def update_value(board_id, item_id, column_id, value, item_name):
         return False
 
 
+# Updates the price of a coin on Monday
 def make_update_over_price(item_id, value):
 
     try:
@@ -127,7 +128,7 @@ def make_update_over_price(item_id, value):
         return False
 
 
-# Creates an update over a coin and notifies.
+# Creates an update over a coin when this one is click on Monday.com and notifies.
 def make_update_notification(user_id, item_id, value):
 
     query = """

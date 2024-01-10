@@ -18,12 +18,32 @@ headers = {
 # Returns a list of Dicts with all the available coins in Coingecko
 def get_list_of_coins():
 
-    coingecko_response = requests.get(f'{coingecko_url}/coins/list', headers=headers)
+    try:
+        coingecko_response = requests.get(f'{coingecko_url}/coins/list', headers=headers)
 
-    if coingecko_response.status_code == 200:
-        return coingecko_response.json(), coingecko_response.status_code
-    
-    return coingecko_response.content, coingecko_response.status_code
+        if coingecko_response.status_code == 200:
+            return coingecko_response.json(), coingecko_response.status_code
+        
+        return coingecko_response.content, coingecko_response.status_code
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return None, None
+
+
+# Calculate the closest multiple of 5 less than or equal to the number
+def closest_multiples_of_5(number):
+    lower_multiple = (number // 5) * 5
+    if lower_multiple == 0:
+        return False
+    return lower_multiple
+
+# Calculate the closest multiple of 10 less than or equal to the number
+def closest_multiples_of_10(number):
+    lower_multiple = (number // 10) * 10
+    if lower_multiple == 0:
+        return False
+    return lower_multiple
+
 
 # calculate percentage variation - price has increased/decreased by 5% or 10%
 def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
@@ -32,54 +52,80 @@ def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
         direction = "increased" if percentage_change >= 0 else "decreased"
         absolute_percentage_change = abs(percentage_change)
 
-        if absolute_percentage_change >= 20:
-            return f'The price of {coin.capitalize()} has {direction} by 20% from your original buy price.'
-        elif absolute_percentage_change >= 15:
-            return f'The price of {coin.capitalize()} has {direction} by 15% from your original buy price.'
-        elif absolute_percentage_change >= 10:
-            return f'The price of {coin.capitalize()} has {direction} by 10% from your original buy price.'
-        elif absolute_percentage_change >= 5:
-            return f'The price of {coin.capitalize()} has {direction} by 5% from your original buy price.'
+        closest_percentage = closest_multiples_of_5(absolute_percentage_change)
+
+        if closest_percentage:
+            if absolute_percentage_change >= closest_percentage:
+                return {'alert_message': f'The price of {coin.capitalize()} has {direction} in {closest_percentage}% from your original buy price.',
+                        'alert_type': f'{closest_percentage}'}
+            else:
+                return None
         else:
             return None
 
     except ZeroDivisionError:
-        print("Error: Buy price cannot be zero.")
+        print(f"Error calculating buy price change for {coin}: Buy price cannot be zero.")
+        return None
+    except Exception as e:
+        print(f"Error: {str(e)}")
         return None
 
-def percentage_variation(coin, percentage_change, timeframe):
+
+# Checks the percentage change of a coin in a day
+def percentage_variation_by_day(coin, percentage_change):
     
     direction = "increased" if float(percentage_change) >= 0 else "decreased"
     absolute_percentage_change = abs(float(percentage_change))
-    end = ''
-    if timeframe == 'weekly':
-        end = 'since the start of the week'
-    else:
-        end = 'today'
+
+    closest_percentage = closest_multiples_of_5(absolute_percentage_change)
 
     try:
-        if absolute_percentage_change >= 30:
-            return f'The price of {coin.capitalize()} has {direction} by 30% {end}.'
-        if absolute_percentage_change >= 25:
-            return f'The price of {coin.capitalize()} has {direction} by 25% {end}.'
-        if absolute_percentage_change >= 20:
-            return f'The price of {coin.capitalize()} has {direction} by 20% {end}.'
-        elif absolute_percentage_change >= 15:
-            return f'The price of {coin.capitalize()} has {direction} by 15% {end}.'
-        elif absolute_percentage_change >= 10:
-            return f'The price of {coin.capitalize()} has {direction} by 10% {end}.'
-        elif absolute_percentage_change >= 5:
-            return f'The price of {coin.capitalize()} has {direction} by 5% {end}.'
+        if closest_percentage:
+            if absolute_percentage_change >= closest_percentage:
+                return {'alert_message': f'The price of {coin.capitalize()} has {direction} in {closest_percentage}% today.',
+                        'alert_type': f'{closest_percentage}'}
+            else:
+                return None
         else:
             return None
 
     except ZeroDivisionError:
-        print("Error: Buy price cannot be zero.")
+        print(f"Error in percentage_variation_by_day for {coin}: number cannot be zero.")
+        return None
+    except Exception as e:
+        print(f"Error: {str(e)}")
+        return None
+    
+
+# Calculates the percentage change of a coin in a week
+def percentage_variation_week(coin, percentage_change):
+    
+    direction = "increased" if float(percentage_change) >= 0 else "decreased"
+    absolute_percentage_change = abs(float(percentage_change))
+
+    closest_percentage = closest_multiples_of_10(absolute_percentage_change)
+
+
+    try:
+        if closest_percentage:
+            if absolute_percentage_change >= closest_percentage:
+                return {'alert_message': f'The price of {coin.capitalize()} has {direction} in {closest_percentage}% since the start of the week.',
+                        'alert_type': f'{closest_percentage}'}
+            else:
+                return None
+        else:
+            return None
+
+    except ZeroDivisionError:
+        print(f"Error in percentage_variation_week for {coin}: number cannot be zero.")
+        return None
+    except Exception as e:
+        print(f"Error: {str(e)}")
         return None
 
-    
-# The price of (Arbitrum) has increased/decreased by 10% from your original buy price.
-def check_price(coin, buy_price):
+
+# Checks the price of a coin - it uses all functions from above and returns their values.
+def check_price(coin):
 
     try: 
         formatted_coin = coin.casefold().strip()
@@ -89,24 +135,22 @@ def check_price(coin, buy_price):
         if coingecko_response.status_code == 200:
             data = coingecko_response.json()
             market_data = data.get('market_data')
-            current_price = market_data['current_price']['usd']
 
-            percentage_variation_over_buy_price = calculate_percentage_change_over_buy_price(buy_price=buy_price, 
-                                                                                             current_price=current_price, 
-                                                                                             coin=formatted_coin)
+            current_price = market_data['current_price']['usd']
             price_change_daily = market_data['price_change_percentage_24h']
             price_change_weekly = market_data['price_change_percentage_7d']
-            percentage_variation_daily = percentage_variation(coin=formatted_coin, percentage_change=price_change_daily, timeframe='daily')
-            percentage_variation_weekly= percentage_variation(coin=formatted_coin, percentage_change=price_change_weekly, timeframe='weekly')
 
-
-            return current_price, percentage_variation_daily, percentage_variation_weekly, percentage_variation_over_buy_price
+            return {'current_price': current_price, 'price_change_daily': price_change_daily, 'price_change_weekly': price_change_weekly}
         
-        return False, False, False, False
+        return False
     except Exception as e:
         print(f'Error getting data for {coin}, {str(e)}')
-        return False, False, False, False
+        return False
 
-# print(check_price('sats-ordinals'))
+
+
+
+
+# print(check_price('WagyuSwap'))
 # print(calculate_percentage_change_over_buy_price('0.1116','0.129964', 'AIPad'))
 # print(percentage_variation('AIPad', '-7.67517', 'weekly'))

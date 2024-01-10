@@ -5,33 +5,21 @@
 # print(type(value))
 # import json
 
-def percentage_change_daily_or_weekly(current_price, starting_price, time_period, percentage_threshold):
-    percentage_change = ((current_price - starting_price) / starting_price) * 100
+# Calculate the closest multiple of 5 less than or equal to the number
+def closest_multiples_of_5(number):
+    lower_multiple = (number // 5) * 5
+    if lower_multiple == 0:
+        return False
+    return lower_multiple
 
-    if time_period == 'daily':
-        gap = 5
-        alert_type = 'day'
-    elif time_period == 'weekly':
-        gap = 10
-        alert_type = 'week'
-    else:
-        raise ValueError("Invalid time period. Use 'daily' or 'weekly'.")
+# Calculate the closest multiple of 10 less than or equal to the number
+def closest_multiples_of_10(number):
+    lower_multiple = (number // 10) * 10
+    if lower_multiple == 0:
+        return False
+    return lower_multiple
 
-    if abs(percentage_change) >= percentage_threshold:
-        num_alerts = int(abs(percentage_change) // gap)
-        direction = 'increased' if percentage_change > 0 else 'decreased'
-
-        for alert_num in range(1, num_alerts + 1):
-            alert_percentage = alert_num * gap
-            message = f'Arbitrum has {direction} in price by {alert_percentage}% since the start of the {alert_type}.'
-            print(message)
-
-# Example usage:
-starting_price = 0.1116  # Replace with the actual starting price
-current_price = 0.129964  # Replace with the actual current price
-
-# Daily alerts with 5% threshold
-percentage_change_daily_or_weekly(current_price, starting_price, 'daily', 5)
-
-# Weekly alerts with 10% threshold
-percentage_change_daily_or_weekly(current_price, starting_price, 'weekly', 10)
+# Example usage
+# given_number = 0
+# result = closest_multiples_of_10(given_number)
+# print(f"The closest multiples of 5 to {given_number} is {result}")
