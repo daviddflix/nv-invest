@@ -16,7 +16,7 @@ rajan_id = 53845740
 kontopyrgou = 53889497
 
 DEX_board_id = 1355568860
-users_ids = [david_id]
+users_ids = [david_id, aman_id, rajan_id]
 
 def activate_bot():
 
@@ -136,5 +136,3 @@ def activate_bot():
         make_update_notification(user_id=david_id, item_id=DEX_board_id, value=str(e))
         return f'Error executing NV Invest BOT {str(e)}', 500
 
-
-# activate_bot()
