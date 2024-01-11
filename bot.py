@@ -1,5 +1,6 @@
 from config import session, Coin, Alert
 from datetime import date
+from sqlalchemy import Date, cast
 from mondayService import (get_values_column, 
                            update_value, 
                            make_update_notification, 
@@ -49,14 +50,20 @@ def activate_bot():
                     # Coin exists, but buy_price has changed, update the existing record
                     existing_coin.buy_price = buy_price
                     session.commit()
+                    make_update_notification(user_id=david_id, item_id=id, value=f'Buy price was updated for {coin_name} to ${buy_price}')
+                    make_update_notification(user_id=aman_id, item_id=id, value=f'Buy price was updated for {coin_name} to ${buy_price}')
+                    make_update_notification(user_id=rajan_id, item_id=id, value=f'Buy price was updated for {coin_name} to ${buy_price}')
 
                 price = check_price(coin_name)
+
+                
+                if not price:
+                    make_update_notification(user_id=david_id, item_id=DEX_board_id, value=f'No price was found for {coin_name}')
+                    continue
+
                 current_price = price['current_price']
                 price_change_daily = price['price_change_daily']
                 price_change_weekly = price['price_change_weekly']
-
-                print(f'\ncurrent_price for {coin_name}: ', current_price)
-                print(f'buy price for {coin_name}: ', buy_price)
 
                 buy_price_percentage = calculate_percentage_change_over_buy_price(buy_price=buy_price, 
                                                                         current_price=current_price, 
@@ -68,11 +75,15 @@ def activate_bot():
                                                     percentage_change=price_change_weekly)
 
                 if buy_price_percentage:
-                    existing_alert = session.query(Alert).filter_by(alert_type=buy_price_percentage['alert_type']).first()
-                    if not existing_alert or existing_alert.created_at.date() != date.today():
+                    existing_alert_buy_price = session.query(Alert).\
+                                filter_by(alert_type=buy_price_percentage['alert_type'], coin_id=id).\
+                                filter(cast(Alert.created_at, Date) == date.today()).\
+                                first()
+
+                    if not existing_alert_buy_price:
 
                         # Makes the update in Monday.con in each coin when it's clicked.
-                        # make_update_over_price(item_id=coin['id'], value=buy_price_percentage['alert_message'])
+                        make_update_over_price(item_id=id, value=buy_price_percentage['alert_message'])
 
                         # Saves the alert to the DB
                         new_alert = Alert(alert_message = buy_price_percentage['alert_message'],
@@ -82,15 +93,19 @@ def activate_bot():
                         session.commit()
 
                         # creates a notification for all the users that are in the list
-                        for id in users_ids:
-                            make_update_notification(user_id=id, item_id=coin['id'], value=buy_price_percentage['alert_message'])  
+                        for user_id in users_ids:
+                            make_update_notification(user_id=user_id, item_id=id, value=buy_price_percentage['alert_message'])  
 
                 if daily_percentage:
-                    existing_alert = session.query(Alert).filter_by(alert_type=daily_percentage['alert_type']).first()
-                    if not existing_alert or existing_alert.created_at.date() != date.today():
+                    existing_alert_daily = session.query(Alert).\
+                                    filter_by(alert_type=daily_percentage['alert_type'], coin_id=id).\
+                                    filter(cast(Alert.created_at, Date) == date.today()).\
+                                    first()
+
+                    if not existing_alert_daily:
 
                         # Makes the update in Monday.con in each coin when it's clicked.
-                        # make_update_over_price(item_id=coin['id'], value=daily_percentage['alert_message'])
+                        make_update_over_price(item_id=id, value=daily_percentage['alert_message'])
 
                         # Saves the alert to the DB
                         new_alert = Alert(alert_message = daily_percentage['alert_message'],
@@ -100,15 +115,19 @@ def activate_bot():
                         session.commit()
 
                         # creates a notification for all the users that are in the list
-                        for id in users_ids:
-                            make_update_notification(user_id=id, item_id=coin['id'], value=daily_percentage['alert_message'])  
+                        for user_id in users_ids:
+                            make_update_notification(user_id=user_id, item_id=id, value=daily_percentage['alert_message'])  
 
                 if weekly_percentage:
-                    existing_alert = session.query(Alert).filter_by(alert_type=weekly_percentage['alert_type']).first()
-                    if not existing_alert or existing_alert.created_at.date() != date.today():
+                    existing_alert_weekly = session.query(Alert).\
+                                        filter_by(alert_type=weekly_percentage['alert_type'], coin_id=id).\
+                                        filter(cast(Alert.created_at, Date) == date.today()).\
+                                        first()
+
+                    if not existing_alert_weekly:
 
                         # Makes the update in Monday.con in each coin when it's clicked.
-                        # make_update_over_price(item_id=coin['id'], value=weekly_percentage['alert_message'])
+                        make_update_over_price(item_id=id, value=weekly_percentage['alert_message'])
                         
                         # Saves the alert to the DB
                         new_alert = Alert(alert_message = weekly_percentage['alert_message'],
@@ -118,14 +137,14 @@ def activate_bot():
                         session.commit()
                         
                         # creates a notification for all the users that are in the list
-                        for id in users_ids:
-                            make_update_notification(user_id=id, item_id=coin['id'], value=weekly_percentage['alert_message'])      
+                        for user_id in users_ids:
+                            make_update_notification(user_id=user_id, item_id=id, value=weekly_percentage['alert_message'])      
 
                 # Makes the update fo the price in the desired column
                 if current_price:
-                    update_value(board_id=coin['board_id'], item_id=coin['id'], column_id=coin['column_id'], value=current_price, item_name=coin['coin']) 
+                    update_value(board_id=board_id, item_id=id, column_id=column_id, value=current_price, item_name=coin_name) 
                 else:
-                    update_value(board_id=coin['board_id'], item_id=coin['id'], column_id=coin['column_id'], value=0, item_name=coin['coin']) 
+                    update_value(board_id=board_id, item_id=id, column_id=column_id, value=0, item_name=coin_name) 
             
             return 'All coins updated', 200
         else:
