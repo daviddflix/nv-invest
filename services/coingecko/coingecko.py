@@ -1,7 +1,6 @@
 import os
-import requests
-import re
 import json
+import requests
 from dotenv import load_dotenv
 from services.slack.actions import send_list_of_coins, send_INFO_message_to_slack_channel
 
@@ -243,7 +242,7 @@ def get_200_gainers_and_losers():
         print({str(e)})
         return f'Error getting the 200 coins from coingecko: {str(e)}', 200
 
-get_200_gainers_and_losers()
+# get_200_gainers_and_losers()
 # print(check_price('WagyuSwap'))
 # print(calculate_percentage_change_over_buy_price('0.1116','0.129964', 'AIPad'))
 # print(percentage_variation('AIPad', '-7.67517', 'weekly'))
