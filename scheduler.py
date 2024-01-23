@@ -1,8 +1,7 @@
-
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.events import EVENT_JOB_ERROR, EVENT_JOB_MAX_INSTANCES, EVENT_JOB_EXECUTED
 from config import db_url
-from mondayService import make_update_notification
+from services.monday.monday import make_update_notification
 
 david_id = 53919924
 DEX_board_id = 1355568860
@@ -26,7 +25,7 @@ def job_error(event):
    
 def job_max_instances_reached(event): 
     job_id = str(event.job_id).capitalize()
-    message = f'Maximum number of running instances reached, *Upgrade* the time interval for {job_id}'
+    message = f'Maximum number of running instances reached, *Upgrade* the time interval for {job_id}'  
     print(message)
     make_update_notification(user_id=david_id, item_id=DEX_board_id, value=message)
 
