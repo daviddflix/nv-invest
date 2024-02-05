@@ -35,9 +35,16 @@ def get_values_column():
 
     CEX_board_id = 1355564217
     DEX_board_id = 1355568860
+    KU_COIN_board_id = 1362987416
+    NV_OKX_board_id = 1364995332
+    BYBIT_SEPIA_board_id = 1365577256
+    OKX_SEPIA_INTERNATIONAL_board_id = 1365552286
+    OKX_SEPIA_board_id = 1365759185
 
     try:
-        response = monday.boards.fetch_items_by_board_id(board_ids=[DEX_board_id, CEX_board_id])
+        response = monday.boards.fetch_items_by_board_id(board_ids=[KU_COIN_board_id, NV_OKX_board_id, BYBIT_SEPIA_board_id,
+                                                                    OKX_SEPIA_board_id
+                                                                    ])
         boards = response['data']['boards']
 
         if boards:
@@ -49,12 +56,28 @@ def get_values_column():
                 for board in boards:
                     items = board['items']
                     board_name = board['name']
+                    print('board_name: ', board_name)
                 
                     if board_name == 'DEX Balance Sheet':
-                        board_id = 1355568860
+                        board_id = DEX_board_id
                         column_id = 'numbers7'
+                    elif board_name == 'KuCoin Master Sheet':
+                        board_id = KU_COIN_board_id
+                        column_id = 'numbers92'
+                    elif board_name == 'NV OKX Master Sheet':
+                        board_id = NV_OKX_board_id
+                        column_id = 'numbers92'
+                    elif board_name == 'Bybit Sepia Wallet Master Sheet':
+                        board_id = BYBIT_SEPIA_board_id
+                        column_id = 'numbers92'
+                    elif board_name == 'OKX Sepia International Wallet Master Sheet':
+                        board_id = OKX_SEPIA_INTERNATIONAL_board_id
+                        column_id = 'numbers92'
+                    elif board_name == 'OKX Sepia Wallet Master Sheet':
+                        board_id = OKX_SEPIA_board_id
+                        column_id = 'numbers92'
                     else:
-                        board_id = 1355564217
+                        board_id = CEX_board_id
                         column_id = 'numbers7'
 
                     for item in items:
@@ -76,10 +99,10 @@ def get_values_column():
                                 item_name = coin['id']
                                 coins.append({'coin': item_name, 'id': item_id, 'board_id': board_id, 'column_id': column_id, 'buy_price': buy_price, 'board_name': board_name})
 
-                print('Len: ', len(coins))
+                print('Total coins: ', len(coins))
                 return {'coins': coins}
             
-            print(list_of_coins)    
+            print('list_of_coins response: ', list_of_coins)    
             return {'error': list_of_coins}
 
         print('No board was found')    

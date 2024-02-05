@@ -19,7 +19,7 @@ kontopyrgou = 53889497
 DEX_board_id = 1355568860
 users_ids = [david_id, aman_id, rajan_id]
 
-def activate_bot():
+def activate_nv_invest_bot():
 
     try:
         response = get_values_column()
@@ -55,7 +55,7 @@ def activate_bot():
                     make_update_notification(user_id=rajan_id, item_id=id, value=f'Buy price was updated for {coin_name} to ${buy_price}')
 
                 price = check_price(coin_name)
-
+                print(f'Price for {coin_name}:', price)
                 
                 if not price:
                     make_update_notification(user_id=david_id, item_id=DEX_board_id, value=f'No price was found for {coin_name}')
@@ -80,9 +80,10 @@ def activate_bot():
                                 filter(cast(Alert.created_at, Date) == date.today()).\
                                 first()
 
+                    # If alert does not exist during the day, then it's fired.
                     if not existing_alert_buy_price:
 
-                        # Makes the update in Monday.con in each coin when it's clicked.
+                        # Makes the update in Monday.con in each coin.
                         make_update_over_price(item_id=id, value=buy_price_percentage['alert_message'])
 
                         # Saves the alert to the DB
@@ -102,9 +103,10 @@ def activate_bot():
                                     filter(cast(Alert.created_at, Date) == date.today()).\
                                     first()
 
+                    # IF alert does not exist during the day, then it's fired.
                     if not existing_alert_daily:
 
-                        # Makes the update in Monday.con in each coin when it's clicked.
+                        # Makes the update in Monday.com in each coin.
                         make_update_over_price(item_id=id, value=daily_percentage['alert_message'])
 
                         # Saves the alert to the DB
@@ -124,6 +126,7 @@ def activate_bot():
                                         filter(cast(Alert.created_at, Date) == date.today()).\
                                         first()
 
+                    # IF alert does not exist during the day, then it's fired.
                     if not existing_alert_weekly:
 
                         # Makes the update in Monday.con in each coin when it's clicked.

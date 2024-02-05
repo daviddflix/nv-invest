@@ -151,8 +151,8 @@ def check_price(coin):
         return False
 
 
-
-def get_100_gainers_and_losers():
+# Gets the gainers and losers listed in Coingecko Website
+def gainers_and_losers_coingecko_list():
 
     try:
         response = requests.get(f'{coingecko_url}/coins/top_gainers_losers?vs_currency=usd&duration=24h&top_coins=300', headers=headers)
@@ -176,6 +176,7 @@ def get_100_gainers_and_losers():
         return f'Error getting 100 gainers and losers, {str(e)}', 500
 
 
+# Gets the 200 most valuables coins by market cap
 def get_200_gainers_and_losers():
 
     try:
@@ -184,8 +185,8 @@ def get_200_gainers_and_losers():
         if status == 200:
 
             # write all available coins in Coingecko into a txt file
-            with open("all_available_coins.txt", 'w') as file:
-                json.dump(coins_response, file, indent=2)
+            # with open("all_available_coins.txt", 'w') as file:
+            #     json.dump(coins_response, file, indent=2)
 
             print('All available coins:', len(coins_response))
             
@@ -211,8 +212,8 @@ def get_200_gainers_and_losers():
                     continue
 
             # Write all the data of the available coins into a txt file            
-            with open("all_available_coins_data.txt", 'w') as file:
-                json.dump(coins_data, file, indent=2)
+            # with open("all_available_coins_data.txt", 'w') as file:
+            #     json.dump(coins_data, file, indent=2)
 
             # Filter the data
             filtered_crypto_list = [
@@ -229,8 +230,8 @@ def get_200_gainers_and_losers():
             top_200_coins = sorted_data[:200]
 
             # Write the top 200 sorted coins data 
-            with open('top_200_coins.txt', 'w') as file:
-                json.dump(top_200_coins, file, indent=2)
+            # with open('top_200_coins.txt', 'w') as file:
+            #     json.dump(top_200_coins, file, indent=2)
 
             send_list_of_coins(coins=top_200_coins, title="Top 200 Coins Sorted by Market Cap")
             return 'Top 200 coins sent to Slack', 200
@@ -240,9 +241,10 @@ def get_200_gainers_and_losers():
 
     except Exception as e:
         print({str(e)})
-        return f'Error getting the 200 coins from coingecko: {str(e)}', 200
+        return f'Error getting the 200 coins from coingecko: {str(e)}', 500
 
-# get_200_gainers_and_losers()
+
+
 # print(check_price('WagyuSwap'))
 # print(calculate_percentage_change_over_buy_price('0.1116','0.129964', 'AIPad'))
 # print(percentage_variation('AIPad', '-7.67517', 'weekly'))
