@@ -17,7 +17,7 @@ rajan_id = 53845740
 kontopyrgou = 53889497
 
 DEX_board_id = 1355568860
-users_ids = [david_id, aman_id, rajan_id]
+users_ids = [david_id]
 
 def activate_nv_invest_bot():
 
@@ -50,9 +50,9 @@ def activate_nv_invest_bot():
                     # Coin exists, but buy_price has changed, update the existing record
                     existing_coin.buy_price = buy_price
                     session.commit()
-                    make_update_notification(user_id=david_id, item_id=id, value=f'Buy price was updated for {coin_name} to ${buy_price}')
-                    make_update_notification(user_id=aman_id, item_id=id, value=f'Buy price was updated for {coin_name} to ${buy_price}')
-                    make_update_notification(user_id=rajan_id, item_id=id, value=f'Buy price was updated for {coin_name} to ${buy_price}')
+                    # creates a notification for all the users that are in the list
+                    for user_id in users_ids:
+                        make_update_notification(user_id=user_id, item_id=id, value=f'Buy price was updated for {coin_name} to ${buy_price}')  
 
                 price = check_price(coin_name)
                 print(f'Price for {coin_name}:', price)
@@ -64,6 +64,7 @@ def activate_nv_invest_bot():
                 current_price = price['current_price']
                 price_change_daily = price['price_change_daily']
                 price_change_weekly = price['price_change_weekly']
+
 
                 buy_price_percentage = calculate_percentage_change_over_buy_price(buy_price=buy_price, 
                                                                         current_price=current_price, 
@@ -151,10 +152,12 @@ def activate_nv_invest_bot():
             
             return 'All coins updated', 200
         else:
-            make_update_notification(user_id=david_id, item_id=DEX_board_id, value=response['error'])
+            make_update_notification(user_id=david_id, item_id=DEX_board_id, value=f'{response['error']}')
             return response['error'], 500
         
     except Exception as e:
         make_update_notification(user_id=david_id, item_id=DEX_board_id, value=str(e))
         return f'Error executing NV Invest BOT {str(e)}', 500
 
+
+activate_nv_invest_bot()

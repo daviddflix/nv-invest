@@ -51,6 +51,13 @@ def closest_multiples_of_10(number):
 # calculate percentage variation - price has increased/decreased by 5% or 10%
 def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
     try:
+        if not buy_price or not current_price or not coin:
+            print(f'data received in calculate_percentage_change_over_buy_price')
+            print(f'coin:', {coin})
+            print(f'buy_price:', {buy_price})
+            print(f'current_price:', {current_price})
+            return None
+
         percentage_change = ((float(current_price) - float(buy_price)) / float(buy_price)) * 100
         direction = "increased" if percentage_change >= 0 else "decreased"
         absolute_percentage_change = abs(percentage_change)
@@ -76,6 +83,12 @@ def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
 
 # Checks the percentage change of a coin in a day
 def percentage_variation_by_day(coin, percentage_change):
+
+    if not coin or not percentage_change:
+        print(f'data received in percentage_variation_by_day')
+        print(f'coin:', {coin})
+        print(f'percentage_change:', {percentage_change})
+        return None
     
     direction = "increased" if float(percentage_change) >= 0 else "decreased"
     absolute_percentage_change = abs(float(percentage_change))
@@ -102,6 +115,12 @@ def percentage_variation_by_day(coin, percentage_change):
 
 # Calculates the percentage change of a coin in a week
 def percentage_variation_week(coin, percentage_change):
+
+    if not coin or not percentage_change:
+        print(f'data received in percentage_variation_week')
+        print(f'coin:', {coin})
+        print(f'percentage_change:', {percentage_change})
+        return None
     
     direction = "increased" if float(percentage_change) >= 0 else "decreased"
     absolute_percentage_change = abs(float(percentage_change))
