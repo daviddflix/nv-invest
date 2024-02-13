@@ -33,22 +33,6 @@ def get_board_by_id():
 # Fetches its main items from the MAIN COLUMN
 def get_values_column():
 
-    # CEX_board_id = 1355564217
-    # DEX_board_id = 1355568860
-    # KU_COIN_board_id = 1362987416
-    # NV_OKX_board_id = 1364995332
-    # BYBIT_SEPIA_board_id = 1365577256
-    # OKX_SEPIA_INTERNATIONAL_board_id = 1365552286
-    # OKX_SEPIA_board_id = 1365759185
-    # rabby_wallet_master_sheet=1368448935
-    # rajan_metamask_wallet_master_sheet=1367129332
-    # metamask_avalanche_wallet_master_sheet=1366240359
-    # metamask_bnb_wallet_master_sheet=1366234172
-    # metamask_polygon_wallet_master_sheet=1366238676
-    # metamask_Optimism_wallet_master_sheet=1366282633
-    # keplr_wallet_master_sheet=1366947918
-    # hashpack_wallet_master_sheet=1368425094
-
     board_ids_mapping = {
     'CEX Balance Sheet': {'board_id': 1355564217, 'column_id': 'numbers7'},
     'DEX Balance Sheet': {'board_id': 1355568860, 'column_id': 'numbers7'},
@@ -71,12 +55,7 @@ def get_values_column():
     board_ids = [mapping['board_id'] for mapping in board_ids_mapping.values()]
 
     try:
-        # response = monday.boards.fetch_items_by_board_id(board_ids=[KU_COIN_board_id, NV_OKX_board_id, BYBIT_SEPIA_board_id,
-        #                                                             OKX_SEPIA_board_id, rabby_wallet_master_sheet, rajan_metamask_wallet_master_sheet,
-        #                                                             metamask_avalanche_wallet_master_sheet, metamask_bnb_wallet_master_sheet,
-        #                                                             metamask_polygon_wallet_master_sheet, metamask_Optimism_wallet_master_sheet,
-        #                                                             keplr_wallet_master_sheet, hashpack_wallet_master_sheet
-        #                                                             ])
+      
         response = monday.boards.fetch_items_by_board_id(board_ids=board_ids)
         boards = response['data']['boards']
         
@@ -99,27 +78,6 @@ def get_values_column():
                         print('jumped')
                         continue
                 
-                    # if board_name == 'DEX Balance Sheet':
-                    #     board_id = DEX_board_id
-                    #     column_id = 'numbers7'
-                    # elif board_name == 'KuCoin Master Sheet':
-                    #     board_id = KU_COIN_board_id
-                    #     column_id = 'numbers92'
-                    # elif board_name == 'NV OKX Master Sheet':
-                    #     board_id = NV_OKX_board_id
-                    #     column_id = 'numbers92'
-                    # elif board_name == 'Bybit Sepia Wallet Master Sheet':
-                    #     board_id = BYBIT_SEPIA_board_id
-                    #     column_id = 'numbers92'
-                    # elif board_name == 'OKX Sepia International Wallet Master Sheet':
-                    #     board_id = OKX_SEPIA_INTERNATIONAL_board_id
-                    #     column_id = 'numbers92'
-                    # elif board_name == 'OKX Sepia Wallet Master Sheet':
-                    #     board_id = OKX_SEPIA_board_id
-                    #     column_id = 'numbers92'
-                    # else:
-                    #     board_id = CEX_board_id
-                    #     column_id = 'numbers7'
 
                     for item in items:
                         item_value = item['name'].casefold().strip()
