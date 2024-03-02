@@ -5,7 +5,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 from sqlalchemy.orm import relationship, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, TIMESTAMP, ForeignKey, Boolean, create_engine
+from sqlalchemy import Column, Integer, String, TIMESTAMP, ForeignKey, create_engine, Boolean
 
 load_dotenv()
 
@@ -28,6 +28,7 @@ class Coin(Base):
     __tablename__ = 'monday_coin'
     coin_id = Column(Integer, primary_key=True, nullable=False)
     coin_name = Column(String, nullable=False)
+    coingecko_coin_id = Column(String)
     column_id = Column(String, nullable=False)
     board_name = Column(String, nullable=False)
     board_id = Column(Integer, nullable=False)

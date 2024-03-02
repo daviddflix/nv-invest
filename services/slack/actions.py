@@ -1,6 +1,7 @@
 from services.slack.slack import client
 from slack_sdk.errors import SlackApiError
 
+# Sends a message to a Slack channel
 def send_INFO_message_to_slack_channel(channel_id, title_message, sub_title, message):
         
         blocks=[
@@ -31,7 +32,10 @@ def send_INFO_message_to_slack_channel(channel_id, title_message, sub_title, mes
                 text=title_message, 
                 blocks=blocks
             )
+
             response = result['ok']
+            ts = result['ts']
+            print(f'Slack message timestamp:', ts)
            
             if response == True:
                 return f'Message sent successfully to Slack channel {channel_id}', 200
@@ -41,8 +45,37 @@ def send_INFO_message_to_slack_channel(channel_id, title_message, sub_title, mes
         except SlackApiError as e:
             print(f'Error sending this message: "{title_message}" to Slack channel, Reason:\n{str(e)}')
             return f'Error sending this message: "{title_message}" to Slack channel, Reason:\n{str(e)}', 500
+        except Exception as e:
+            print(f'Error sending message to slack: {str(e)}')
+            return f'Error sending message to slack: {str(e)}', 500
+
+#Deletes a message in Slack
+def delete_messages_in_channel(ts_messages_list, channel_id="C06FTS38JRX"):
+    try:
+        for message in ts_messages_list:
+            response = client.chat_delete(
+                channel=channel_id,
+                ts=message
+            )
+            if not response["ok"]:
+                print(f"---Failed to delete message with timestamp {message}. Error: {response['error']}---")
+            else:
+                print(f"---Deleted message with timestamp {message}---")
+
+        return 'All messages deleted in Slack', 200
+    except Exception as e:
+        print(f'---Error while deleting messages in Slack: {str(e)}---')
+        return f'Error while deleting messages in Slack: {str(e)}', 500
 
 
+# ________ Functions to format the message to send top 200 coins from coingecko, order by Market cap  ________
+    
+# Round a number to a given precision in decimal digits.
+def format_number(number, decimal_places):
+    formatted_number = round(number, decimal_places)
+    return formatted_number
+
+# First part of the entire message that will be send to slack: THE TITLE
 def generate_initial_section(title="Top 100 Gainers"):
     return {
         "type": "rich_text",
@@ -69,11 +102,7 @@ def generate_initial_section(title="Top 100 Gainers"):
     }
 
 
-def format_number(number, decimal_places):
-    formatted_number = round(number, decimal_places)
-    return formatted_number
-
-
+# Second part of the entire message: this part contains the details about a coin
 def generate_coin_block(coin_data):
     return {
         "type": "section",
@@ -89,6 +118,8 @@ def generate_coin_block(coin_data):
     }
 
 
+
+# ------ CREATE ROUTE FOR THIS BOT and ADD THIS INTO A NEW FILE CALLED get_200_coins_bot.py -----
 def send_list_of_coins(coins, title="Top 100 Gainers", channel_id="C06F00A99C3", batch_size=20):
     try:
         blocks = []
@@ -137,21 +168,3 @@ def send_list_of_coins(coins, title="Top 100 Gainers", channel_id="C06F00A99C3",
     except Exception as e:
         print(f'Error sending list of coins to Slack: {str(e)}')
         return f'Error sending list of coins to Slack: {str(e)}', 500
-
-
-def delete_messages_in_channel(messages_list):
-    try:
-        for message in messages_list:
-            response = client.chat_delete(
-                channel="C06F00A99C3",
-                ts=message
-            )
-            print('response: ', response)
-            print(f"Deleted message with timestamp {message}")
-        return 'All messages deleted in Slack', 200
-    except Exception as e:
-        return f'Error while deleting messages in Slack: {str(e)}', 500
-
-
-# messages_to_delete = ["1705968969.886309", "1705968970.188199", "1705968970.480349"]
-# delete_messages_in_channel(messages_to_delete)

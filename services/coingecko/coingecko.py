@@ -1,8 +1,8 @@
 import os
-import json
+import json 
 import requests
 from dotenv import load_dotenv
-from services.slack.actions import send_list_of_coins, send_INFO_message_to_slack_channel
+from services.slack.actions import send_list_of_coins
 
 load_dotenv() 
 
@@ -10,7 +10,6 @@ load_dotenv()
 coingecko_url = "https://pro-api.coingecko.com/api/v3"
 
 COINGECKO_API_KEY = os.getenv("COINGECKO_API_KEY")
-david_channel = 'D05DLG37GSY'
 
 headers = {
             "Content-Type": "application/json",
@@ -18,13 +17,27 @@ headers = {
         }
 
 
-# Returns a list of Dicts with all the available coins in Coingecko
+# Returns a list of dicts with all the available coins in Coingecko
 def get_list_of_coins():
-
     try:
         coingecko_response = requests.get(f'{coingecko_url}/coins/list', headers=headers)
 
         if coingecko_response.status_code == 200:
+            data = coingecko_response.json()
+            
+            # Save coins_data to a JSON file
+            with open('coingecko_coins.json', 'w', encoding='utf-8') as file:
+                json.dump(data, file, ensure_ascii=False, indent=3)
+
+            # Save coins_data to a text file as a JSON-formatted string
+            with open('coingecko_coins.txt', 'w', encoding='utf-8') as file:
+                file.write(json.dumps(data, ensure_ascii=False, indent=3))
+
+            # Save coins_data to a text file
+            with open('coingecko_coins_2.txt', 'w', encoding='utf-8') as file:
+                for coin in data:
+                    file.write(str(coin) + '\n')
+
             return coingecko_response.json(), coingecko_response.status_code
         else:
             return coingecko_response.content, coingecko_response.status_code
@@ -35,24 +48,33 @@ def get_list_of_coins():
 
 # Calculate the closest multiple of 5 less than or equal to the number
 def closest_multiples_of_5(number):
-    lower_multiple = (number // 5) * 5
-    if lower_multiple == 0:
+    try:
+        lower_multiple = (float(number) // 5) * 5
+        if lower_multiple == 0:
+            return False
+        return lower_multiple
+    except Exception as e:
+        print(f"Error calculating the closest multiple of 5 to {str(number)}. {str(e)}")
         return False
-    return lower_multiple
+
 
 # Calculate the closest multiple of 10 less than or equal to the number
 def closest_multiples_of_10(number):
-    lower_multiple = (number // 10) * 10
-    if lower_multiple == 0:
+    try:
+        lower_multiple = (float(number) // 10) * 10
+        if lower_multiple == 0:
+            return False
+        return lower_multiple
+    except Exception as e:
+        print(f"Error calculating the closest multiple of 10 to {str(number)}. {str(e)}")
         return False
-    return lower_multiple
 
 
 # calculate percentage variation - price has increased/decreased by 5% or 10%
 def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
     try:
         if not buy_price or not current_price or not coin:
-            print(f'data received in calculate_percentage_change_over_buy_price')
+            print(f'\ndata received in calculate_percentage_change_over_buy_price')
             print(f'coin:', {coin})
             print(f'buy_price:', {buy_price})
             print(f'current_price:', {current_price})
@@ -82,16 +104,16 @@ def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
 
 
 # Checks the percentage change of a coin in a day
-def percentage_variation_by_day(coin, percentage_change):
+def percentage_variation_daily(coin, price_change_daily):
 
-    if not coin or not percentage_change:
+    if not coin or not price_change_daily:
         print(f'data received in percentage_variation_by_day')
         print(f'coin:', {coin})
-        print(f'percentage_change:', {percentage_change})
+        print(f'percentage_change:', {price_change_daily})
         return None
     
-    direction = "increased" if float(percentage_change) >= 0 else "decreased"
-    absolute_percentage_change = abs(float(percentage_change))
+    direction = "increased" if float(price_change_daily) >= 0 else "decreased"
+    absolute_percentage_change = abs(float(price_change_daily))
 
     closest_percentage = closest_multiples_of_5(absolute_percentage_change)
 
@@ -114,16 +136,16 @@ def percentage_variation_by_day(coin, percentage_change):
     
 
 # Calculates the percentage change of a coin in a week
-def percentage_variation_week(coin, percentage_change):
+def percentage_variation_week(coin, price_change_weekly):
 
-    if not coin or not percentage_change:
+    if not coin or not price_change_weekly:
         print(f'data received in percentage_variation_week')
         print(f'coin:', {coin})
-        print(f'percentage_change:', {percentage_change})
+        print(f'price_change_weekly:', {price_change_weekly})
         return None
     
-    direction = "increased" if float(percentage_change) >= 0 else "decreased"
-    absolute_percentage_change = abs(float(percentage_change))
+    direction = "increased" if float(price_change_weekly) >= 0 else "decreased"
+    absolute_percentage_change = abs(float(price_change_weekly))
 
     closest_percentage = closest_multiples_of_10(absolute_percentage_change)
 
@@ -149,9 +171,11 @@ def percentage_variation_week(coin, percentage_change):
 # Checks the price of a coin - it uses all functions from above and returns their values.
 def check_price(coin):
 
-    try: 
+    try:
+        if not coin:
+            return False
+        
         formatted_coin = coin.casefold().strip()
-
         coingecko_response = requests.get(f'{coingecko_url}/coins/{formatted_coin}', headers=headers) 
 
         if coingecko_response.status_code == 200:
@@ -166,34 +190,11 @@ def check_price(coin):
         
         return False
     except Exception as e:
-        print(f'Error getting data for {coin}, {str(e)}')
+        print(f'Error getting data for {coin}: {str(e)}')
         return False
 
 
-# Gets the gainers and losers listed in Coingecko Website
-def gainers_and_losers_coingecko_list():
-
-    try:
-        response = requests.get(f'{coingecko_url}/coins/top_gainers_losers?vs_currency=usd&duration=24h&top_coins=300', headers=headers)
-        if response.status_code == 200:
-            coins = response.json()
-
-            top_gainers = coins.get('top_gainers', [])
-            top_losers = coins.get('top_losers', [])
-            print('top_gainers:', len(top_gainers))
-            print('top_losers:', len(top_losers))
-          
-            send_list_of_coins(top_gainers, title=f"Top {len(top_gainers)} Gainers")
-            send_list_of_coins(top_losers, title=f"Top {len(top_losers)} Losers")
-           
-        else:
-            print('response.content: ', response.content)
-            return response.content, response.status_code
-
-    except Exception as e:
-        print(f'Error getting 100 gainers and losers, {str(e)}')
-        return f'Error getting 100 gainers and losers, {str(e)}', 500
-
+# ____________________ REVIEW FUNCTION ______________________________
 
 # Gets the 200 most valuables coins by market cap
 def get_200_gainers_and_losers():
@@ -264,6 +265,10 @@ def get_200_gainers_and_losers():
 
 
 
-# print(check_price('WagyuSwap'))
-# print(calculate_percentage_change_over_buy_price('0.1116','0.129964', 'AIPad'))
-# print(percentage_variation('AIPad', '-7.67517', 'weekly'))
+# ------------------- TESTS --------------------------------------------
+
+# get_list_of_coins()
+# print(check_price('kira-network'))
+# print(percentage_variation_week(coin="kira", price_change_weekly="-33.24293"))
+# print(percentage_variation_daily(coin="kira", price_change_daily="-29.29918"))
+# print(calculate_percentage_change_over_buy_price(coin="Gamestarter", current_price="0.2896", buy_price="0.0299"))
