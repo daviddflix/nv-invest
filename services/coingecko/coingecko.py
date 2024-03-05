@@ -75,9 +75,7 @@ def closest_multiples_of_5(number):
 def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
     try:
         if not buy_price or not current_price or not coin:
-            print(f'data received in calculate_percentage_change_over_buy_price')
-            print(f'buy_price:', {buy_price})
-            print(f'current_price:', {current_price})
+            print("Can't calculate BUY PRICE percentage, not all required values are present")
             return None
 
         percentage_change = ((float(current_price) - float(buy_price)) / float(buy_price)) * 100
@@ -104,8 +102,7 @@ def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
 def percentage_variation_daily(coin, price_change_daily):
 
     if not coin or not price_change_daily:
-        print(f'data received in percentage_variation_by_day')
-        print(f'percentage_change:', {price_change_daily})
+        print("Can't calculate Daily percentage, not all required values are present")
         return None
     
     direction = "increased" if float(price_change_daily) >= 0 else "decreased"
@@ -131,8 +128,7 @@ def percentage_variation_daily(coin, price_change_daily):
 def percentage_variation_week(coin, price_change_weekly):
 
     if not coin or not price_change_weekly:
-        print(f'data received in percentage_variation_week')
-        print(f'price_change_weekly:', {price_change_weekly})
+        print("Can'r calculate WEEKLY percentage, not all required values are present")
         return None
     
     direction = "increased" if float(price_change_weekly) >= 0 else "decreased"
@@ -149,7 +145,7 @@ def percentage_variation_week(coin, price_change_weekly):
         print(f"Error in percentage_variation_week for {coin}: number cannot be zero.")
         return None
     except Exception as e:
-        print(f"Error: {str(e)}")
+        print(f"General Error in weekly calculation: {str(e)}")
         return None
 
 

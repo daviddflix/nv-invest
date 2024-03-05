@@ -14,12 +14,12 @@ from services.coingecko.coingecko import (check_price,
                               percentage_variation_week)
 
 david_user_id = 53919924
-aman__user_id = 53919777
+aman_user_id = 53919777
 rajan_user_id = 53845740
 kontopyrgou_user_id = 53889497
 DEX_board_id = 1355568860
 
-users_ids = [david_user_id]
+users_ids = [david_user_id, aman_user_id, rajan_user_id, kontopyrgou_user_id]
 
 # Notifies to #Logs channel in Slack
 def log_and_notify_error(error_message, title_message="Error executing NV Invest Bot", sub_title="Response", SLACK_CHANNEL_ID="C06FTS38JRX"):
@@ -141,18 +141,13 @@ def activate_nv_invest_bot():
             total_quantity_value = coin['total_quantity_value']
 
             print(f"\n---{str(coin_name).upper()}---")
-
-            if not coingecko_coin_id:
-                print(f"{coin_name.capitalize()} doesn't have coingecko_coin_id: {coingecko_coin_id}")
-                continue
             
             price = check_price(coingecko_coin_id)
-            # print(f'---Price for {coin_name} ({coin_symbol}):', price)
             
             if not price:
                 print(f'---No price for {coin_name}---')
                 for user_id in users_ids:
-                    create_notification(user_id=user_id, item_id=coin_id, value=f'No price was found for {str(coin_name).capitalize()}')
+                    create_notification(user_id=user_id, item_id=coin_id, value=f'No price was found for: {coin_name} ({coin_symbol.upper()})')
                 continue
            
             current_price = price['current_price']
@@ -184,6 +179,9 @@ def activate_nv_invest_bot():
                                                 price_change_weekly=price_change_weekly)
             if not buy_price_percentage:
                 print(f'No buy price percentage for {coin_name}')
+                for user_id in users_ids:
+                    create_notification(user_id=user_id, item_id=coin_id, 
+                                        value=f"Can't calculate profit and percentage change; No Buy Price found for: {coin_name} ({coin_symbol.upper()})")
 
             if buy_price_percentage:
                 percentage_change = buy_price_percentage['percentage_change']
@@ -204,7 +202,7 @@ def activate_nv_invest_bot():
                 # If alert does not exist during the day, then it's fired.
                 if not existing_alert_buy_price:
                     # Writes a new update in Monday.com
-                    # write_new_update(item_id=id, value=buy_price_percentage['alert_message'])
+                    write_new_update(item_id=id, value=buy_price_percentage['alert_message'])
 
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = buy_price_percentage['alert_message'],
@@ -230,7 +228,7 @@ def activate_nv_invest_bot():
                 if not existing_alert_daily:
 
                     # Writes a new update in Monday.com
-                    # write_new_update(item_id=coin_id, value=daily_percentage['alert_message'])
+                    write_new_update(item_id=coin_id, value=daily_percentage['alert_message'])
 
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = daily_percentage['alert_message'],
@@ -257,7 +255,7 @@ def activate_nv_invest_bot():
                 if not existing_alert_weekly:
 
                     # Writes a new update in Monday.com
-                    # write_new_update(item_id=coin_id, value=weekly_percentage['alert_message'])
+                    write_new_update(item_id=coin_id, value=weekly_percentage['alert_message'])
                     
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = weekly_percentage['alert_message'],
