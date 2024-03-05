@@ -46,18 +46,6 @@ def get_list_of_coins():
         return None, None
 
 
-# Calculate the closest multiple of 5 less than or equal to the number
-def closest_multiples_of_5(number):
-    try:
-        lower_multiple = (float(number) // 5) * 5
-        if lower_multiple == 0:
-            return False
-        return lower_multiple
-    except Exception as e:
-        print(f"Error calculating the closest multiple of 5 to {str(number)}. {str(e)}")
-        return False
-
-
 # Calculate the closest multiple of 10 less than or equal to the number
 def closest_multiples_of_10(number):
     try:
@@ -70,6 +58,17 @@ def closest_multiples_of_10(number):
         return False
 
 
+# Calculate the closest multiple of 5 less than or equal to the number
+def closest_multiples_of_5(number):
+    try:
+        lower_multiple = (float(number) // 5) * 5
+        if lower_multiple == 0:
+            return False
+        return lower_multiple
+    except Exception as e:
+        print(f"Error calculating the closest multiple of 5 to {str(number)}. {str(e)}")
+        return False
+
 # calculate percentage variation - price has increased/decreased by 5% or 10%
 def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
     try:
@@ -81,6 +80,7 @@ def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
             return None
 
         percentage_change = ((float(current_price) - float(buy_price)) / float(buy_price)) * 100
+   
         direction = "increased" if percentage_change >= 0 else "decreased"
         absolute_percentage_change = abs(percentage_change)
 
@@ -89,7 +89,7 @@ def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
         if closest_percentage:
             if absolute_percentage_change >= closest_percentage:
                 return {'alert_message': f'The price of {coin.capitalize()} has {direction} in {closest_percentage}% from your original buy price.',
-                        'alert_type': f'{closest_percentage}'}
+                        'alert_type': f'{closest_percentage}', 'percentage_change': closest_percentage}
             else:
                 return None
         else:

@@ -29,9 +29,7 @@ class Coin(Base):
     coin_id = Column(Integer, primary_key=True, nullable=False)
     coin_name = Column(String, nullable=False)
     coingecko_coin_id = Column(String)
-    column_id = Column(String, nullable=False)
-    board_name = Column(String, nullable=False)
-    board_id = Column(Integer, nullable=False)
+    is_valid = Column(Boolean, default=False)
     buy_price = Column(String, nullable=False)
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
@@ -49,6 +47,19 @@ class Alert(Base):
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
 
     coin = relationship('Coin', back_populates='alerts', lazy=True) 
+
+class Board(Base):
+    __tablename__ = 'monday_board'
+    board_id = Column(Integer, primary_key=True, autoincrement=True)
+    board_name = Column(String, nullable=False)
+    monday_board_id = Column(Integer, nullable=False)
+    created_at = Column(TIMESTAMP, default=datetime.utcnow)
+    updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+
 
 
 Base.metadata.create_all(engine)

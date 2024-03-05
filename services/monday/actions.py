@@ -35,12 +35,34 @@ def create_notification(user_id, item_id, value):
     except Exception as e:
         print(f'Error found creating update {str(e)}')
         return False
-    
+
+# Calculate the profit of a coin compared to the Buy Price
+def calculate_profit(current_price, buy_price, total_quantity):
+    try:
+        # Ensure input values are numeric
+        current_price = float(current_price)
+        buy_price = float(buy_price)
+        total_quantity = float(total_quantity)
+
+        # Ensure non-negative values for prices and number of coins
+        if current_price < 0 or buy_price < 0 or total_quantity < 0:
+            raise ValueError("Prices and number of coins must be non-negative.")
+
+        # Calculate profit using the provided formula
+        profit = (current_price - buy_price) * total_quantity
+
+        return profit
+
+    except ValueError as ve:
+        print(f"Error: {ve}")
+        return False
+
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}" )
+        return False
 
 # Gets the items of the boards along with its, ID, name, column values, buy price of the coin and board details - MONDAY NATIVE API
 def get_board_items(board_ids, limit=500):
-
-    board_ids = [mapping['board_id'] for mapping in board_ids.values()]
 
     query = f'''
         query {{
@@ -78,12 +100,68 @@ def get_board_items(board_ids, limit=500):
                 columns = board['columns']
                 items = board['items_page']['items']
                 
-                # Finds the ID of the names of the columns in "column_names" param
-                column_id = None
+                column_ids = {}
+
+                # Finds the column ID of the Code column
+                code_column_id = None
+                for item in columns:
+                    if item["title"].casefold().strip() == "Code".casefold().strip():
+                        code_column_id = item["id"]
+                        column_ids['code_column_id'] = item["id"]
+                
+                # Finds the column ID of the Quantities column
+                quantity_column_id = None
+                for item in columns:
+                    if item["title"].casefold().strip() == "Quantity".casefold().strip():
+                        quantity_column_id = item["id"]
+                
+                second_quantity = None
+                for item in columns:
+                    if item["title"].casefold().strip() == "2nd Quantity".casefold().strip():
+                        second_quantity = item["id"]
+                
+                third_quantity = None
+                for item in columns:
+                    if item["title"].casefold().strip() == "3rd Quantity".casefold().strip():
+                        third_quantity = item["id"]
+                
+                fouth_quantity = None
+                for item in columns:
+                    if item["title"].casefold().strip() == "4th Quantity".casefold().strip():
+                        fouth_quantity = item["id"]
+                
+                fifth_quantity = None
+                for item in columns:
+                    if item["title"].casefold().strip() == "5th Quantity".casefold().strip():
+                        fifth_quantity = item["id"]
+
+                # Finds the column ID of the Buy Price column
+                buy_price_column_id = None
+                for item in columns:
+                    if item["title"].casefold().strip() == "Buy Price".casefold().strip():
+                        buy_price_column_id = item["id"]
+                        column_ids['buy_price_column_id'] = item["id"]
+
+                # Finds the column ID of the Valuation Price column
+                valuation_price_column_id = None
                 for item in columns:
                     if item["title"].casefold().strip() == "Valuation Price".casefold().strip():
-                        column_id = item["id"]
+                        valuation_price_column_id = item["id"]
+                        column_ids['valuation_price_column_id'] = item["id"]
 
+                # Finds the column ID of the % Change column
+                percentage_change_column_id = None
+                for item in columns:
+                    if item["title"].casefold().strip() == "% Change".casefold().strip():
+                        percentage_change_column_id = item["id"]
+                        column_ids['percentage_change_column_id'] = item["id"]
+
+                # Finds the column ID of the PProjected Value column
+                projected_value_column_id = None
+                for item in columns:
+                    if item["title"].casefold().strip() == "Projected Value".casefold().strip():
+                        projected_value_column_id = item["id"]
+                        column_ids['projected_value_column_id'] = item["id"]
 
                 for item in items:
                     item_name = item['name'].casefold().strip()
@@ -92,15 +170,34 @@ def get_board_items(board_ids, limit=500):
 
                     symbol = None
                     buy_price = None
+                    total_quantity_value = None
                     for row in column_values:
-                        if row['id'] == 'text':
+                        if row['id'] == code_column_id:
                             symbol = row['text'].casefold().strip()
 
-                        if row['id'] == 'numbers6':
+                        if row['id'] == buy_price_column_id:
                             buy_price = row['text']
+                        
+                        if quantity_column_id and row['id'] == quantity_column_id:
+                            if row['text']:
+                                total_quantity_value = float(row['text'])
+                        if second_quantity and row['id'] == second_quantity:
+                            if row['text']:
+                                total_quantity_value = total_quantity_value + float(row['text'])
+                        if third_quantity and row['id'] == third_quantity:
+                            if row['text']:
+                                total_quantity_value = total_quantity_value + float(row['text'])
+                        if fouth_quantity and row['id'] == fouth_quantity:
+                            if row['text']:
+                                total_quantity_value = total_quantity_value + float(row['text'])
+                        if fifth_quantity and row['id'] == fifth_quantity:
+                            if row['text']:
+                                total_quantity_value = total_quantity_value + float(row['text'])
 
-                    coins_data.append({'coin_name': item_name, 'coin_id': item_id, 'board_id': board_id, 'valuation_price_column_id': column_id,
-                                    'board_name': board_name, 'coin_symbol': symbol, 'buy_price': buy_price})
+                    coins_data.append({'coin_name': item_name, 'coin_id': item_id, 'board_id': board_id, 
+                                      'total_quantity_value': total_quantity_value, 'column_ids': column_ids,
+                                    'board_name': board_name, 'coin_symbol': symbol, 'buy_price': buy_price,
+                                    })
 
             # # Save coins_data to a text file
             # with open('coins_data.txt', 'w') as file:
@@ -134,11 +231,16 @@ def change_column_value(item_id, board_id, column_id, value):
 
     try:
         response = requests.post(monday_url, headers=headers, json={'query': mutation_query})
-
-        if response.status_code == 200:
+        response_data = response.json()
+        
+        if 'error_code' in response_data:
+            error_message = response_data['error_message']
+            print(f'--- Error changing column value: {error_message}---')
+            return False
+        elif 'data' in response_data and 'change_column_value' in response_data['data']:
             return True
         else:
-            print(f'Error changing column value: {response.content}')
+            print('--- Unexpected response format ---')
             return False
 
     except Exception as e:
@@ -189,26 +291,5 @@ def get_column_ids(board_id):
 # create_notification(user_id=53919924, item_id=1355566235, value="test")
 # print(change_column_value(board_id=1355564217, item_id=1355566235, column_id="numbers7", value="0.0002"))
 
-# board_ids = {
-#     'CEX Balance Sheet': {'board_id': 1355564217},
-#     'DEX Balance Sheet': {'board_id': 1355568860},
-#     'KuCoin Master Sheet': {'board_id': 1362987416},
-#     'NV OKX Master Sheet': {'board_id': 1364995332},
-#     'Bybit Sepia Wallet Master Sheet': {'board_id': 1365577256},
-#     'OKX Sepia International Wallet Master Sheet': {'board_id': 1365552286},
-#     'OKX Sepia Wallet Master Sheet': {'board_id': 1365759185},
-#     'Rabby Wallet Master Sheet': {'board_id': 1368448935},
-#     'Rajan Metamask Wallet Master Sheet': {'board_id': 1367129332},
-#     'Metamask Avalanche Wallet Master Sheet': {'board_id': 1366240359},
-#     'Metamask BNB Wallet Master Sheet': {'board_id': 1366234172},
-#     'Metamask Polygon Wallet Master Sheet': {'board_id': 1366238676},
-#     'Metamask Optimism Wallet Master Sheet': {'board_id': 1366282633},
-#     'Keplr Wallet Master Sheet': {'board_id': 1366947918},
-#     'HashPack Wallet Master Sheet': {'board_id': 1368425094},
-#     'Doge Labs Wallet Master Sheet': {'board_id': 1411047183},
-#     'Solflare Wallet Master Sheet': {'board_id': 1411045630},
-#     'NinjaVault Wallet Master Sheet': {'board_id': 1411045311},
-#     }
 
-
-# get_board_items(board_ids=board_ids)
+# print(get_board_items(board_ids=[1366238676]))
