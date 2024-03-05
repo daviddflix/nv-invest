@@ -28,13 +28,23 @@ class Coin(Base):
     __tablename__ = 'monday_coin'
     coin_id = Column(Integer, primary_key=True, nullable=False)
     coin_name = Column(String, nullable=False)
+    coin_symbol = Column(String, nullable=False)
     coingecko_coin_id = Column(String)
     is_valid = Column(Boolean, default=False)
     buy_price = Column(String, nullable=False)
+    total_quantity_value = Column(String, nullable=False)
+    board_id = Column(String, nullable=False)
+    board_name = Column(String, nullable=False)
+    valuation_price_column_id = Column(String, nullable=False)
+    percentage_change_column_id = Column(String, nullable=False)
+    projected_value_column_id = Column(String, nullable=False)
     created_at = Column(TIMESTAMP, default=datetime.utcnow)
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
 
     alerts = relationship('Alert', back_populates='coin')
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
 
 class Alert(Base):
@@ -47,6 +57,9 @@ class Alert(Base):
     updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
 
     coin = relationship('Coin', back_populates='alerts', lazy=True) 
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
 class Board(Base):
     __tablename__ = 'monday_board'

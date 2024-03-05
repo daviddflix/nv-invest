@@ -25,7 +25,7 @@ def create_notification(user_id, item_id, value):
 
     try:
         response = requests.post(monday_url, headers=headers, json={'query': new_query})
-
+       
         if response.status_code == 200:
             return True
         else:
@@ -39,6 +39,10 @@ def create_notification(user_id, item_id, value):
 # Calculate the profit of a coin compared to the Buy Price
 def calculate_profit(current_price, buy_price, total_quantity):
     try:
+        if not current_price or not buy_price or not total_quantity:
+            print("Can't calculate profit, not all required values are present")
+            return False
+
         # Ensure input values are numeric
         current_price = float(current_price)
         buy_price = float(buy_price)

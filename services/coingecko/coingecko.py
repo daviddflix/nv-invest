@@ -62,19 +62,20 @@ def closest_multiples_of_10(number):
 def closest_multiples_of_5(number):
     try:
         lower_multiple = (float(number) // 5) * 5
+      
         if lower_multiple == 0:
             return False
         return lower_multiple
     except Exception as e:
         print(f"Error calculating the closest multiple of 5 to {str(number)}. {str(e)}")
         return False
+    
 
 # calculate percentage variation - price has increased/decreased by 5% or 10%
 def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
     try:
         if not buy_price or not current_price or not coin:
-            print(f'\ndata received in calculate_percentage_change_over_buy_price')
-            print(f'coin:', {coin})
+            print(f'data received in calculate_percentage_change_over_buy_price')
             print(f'buy_price:', {buy_price})
             print(f'current_price:', {current_price})
             return None
@@ -82,16 +83,12 @@ def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
         percentage_change = ((float(current_price) - float(buy_price)) / float(buy_price)) * 100
    
         direction = "increased" if percentage_change >= 0 else "decreased"
-        absolute_percentage_change = abs(percentage_change)
 
-        closest_percentage = closest_multiples_of_5(absolute_percentage_change)
+        closest_percentage = closest_multiples_of_5(percentage_change)
 
         if closest_percentage:
-            if absolute_percentage_change >= closest_percentage:
-                return {'alert_message': f'The price of {coin.capitalize()} has {direction} in {closest_percentage}% from your original buy price.',
-                        'alert_type': f'{closest_percentage}', 'percentage_change': closest_percentage}
-            else:
-                return None
+            return {'alert_message': f'The price of {coin.capitalize()} has {direction.upper()} in {closest_percentage}% from your original buy price.',
+                    'alert_type': f'{closest_percentage}', 'percentage_change': closest_percentage}
         else:
             return None
 
@@ -108,22 +105,17 @@ def percentage_variation_daily(coin, price_change_daily):
 
     if not coin or not price_change_daily:
         print(f'data received in percentage_variation_by_day')
-        print(f'coin:', {coin})
         print(f'percentage_change:', {price_change_daily})
         return None
     
     direction = "increased" if float(price_change_daily) >= 0 else "decreased"
-    absolute_percentage_change = abs(float(price_change_daily))
 
-    closest_percentage = closest_multiples_of_5(absolute_percentage_change)
-
+    closest_percentage = closest_multiples_of_5(price_change_daily)
+   
     try:
         if closest_percentage:
-            if absolute_percentage_change >= closest_percentage:
-                return {'alert_message': f'The price of {coin.capitalize()} has {direction} in {closest_percentage}% today.',
-                        'alert_type': f'{closest_percentage}'}
-            else:
-                return None
+            return {'alert_message': f'The price of {coin.capitalize()} has {direction.upper()} in {closest_percentage}% today.',
+                    'alert_type': f'{closest_percentage}'}
         else:
             return None
 
@@ -140,23 +132,16 @@ def percentage_variation_week(coin, price_change_weekly):
 
     if not coin or not price_change_weekly:
         print(f'data received in percentage_variation_week')
-        print(f'coin:', {coin})
         print(f'price_change_weekly:', {price_change_weekly})
         return None
     
     direction = "increased" if float(price_change_weekly) >= 0 else "decreased"
-    absolute_percentage_change = abs(float(price_change_weekly))
-
-    closest_percentage = closest_multiples_of_10(absolute_percentage_change)
-
+    closest_percentage = closest_multiples_of_10(price_change_weekly)
 
     try:
         if closest_percentage:
-            if absolute_percentage_change >= closest_percentage:
-                return {'alert_message': f'The price of {coin.capitalize()} has {direction} in {closest_percentage}% since the start of the week.',
-                        'alert_type': f'{closest_percentage}'}
-            else:
-                return None
+            return {'alert_message': f'The price of {coin.capitalize()} has {direction.upper()} in {closest_percentage}% since the start of the week.',
+                    'alert_type': f'{closest_percentage}'}
         else:
             return None
 
@@ -271,4 +256,4 @@ def get_200_gainers_and_losers():
 # print(check_price('kira-network'))
 # print(percentage_variation_week(coin="kira", price_change_weekly="-33.24293"))
 # print(percentage_variation_daily(coin="kira", price_change_daily="-29.29918"))
-# print(calculate_percentage_change_over_buy_price(coin="Gamestarter", current_price="0.2896", buy_price="0.0299"))
+# print(calculate_percentage_change_over_buy_price(coin="ZMINE", current_price="0.04855031", buy_price="0.0899"))
