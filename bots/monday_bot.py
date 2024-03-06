@@ -19,7 +19,7 @@ rajan_user_id = 53845740
 kontopyrgou_user_id = 53889497
 DEX_board_id = 1355568860
 
-users_ids = [david_user_id, aman_user_id, rajan_user_id, kontopyrgou_user_id]
+users_ids = [david_user_id]
 
 # Notifies to #Logs channel in Slack
 def log_and_notify_error(error_message, title_message="Error executing NV Invest Bot", sub_title="Response", SLACK_CHANNEL_ID="C06FTS38JRX"):
@@ -86,7 +86,7 @@ def validate_and_save_coins(coins, users_ids):
                 session.commit()
                 print(f"{coin_name.capitalize()} was added to the DB")
             else:
-                not_saved_coins += f"{coin_name} ({coin_symbol})\n, "
+                not_saved_coins += f"{coin_name} ({coin_symbol}),\n "
                 print(f"No Coingecko ID found for: {coin_name} ({coin_symbol})")
                 # Notify users
                 for user_id in users_ids:
@@ -106,6 +106,11 @@ def validate_and_save_coins(coins, users_ids):
                 print(f"{coin_name} already exists and it's valid")
     
     print('not_saved_coins: ', not_saved_coins if len(not_saved_coins) > 0 else "None")
+    # Notify which coins cound't be added to the DB
+    if len(not_saved_coins) > 0:
+        for user_id in users_ids:
+            create_notification(user_id=user_id, item_id=DEX_board_id, value=f'These coins could not be added, due to they were not found on CoinGecko: {not_saved_coins}')
+    
     return 'All valid coin added to the DB'
 
 
@@ -202,7 +207,7 @@ def activate_nv_invest_bot():
                 # If alert does not exist during the day, then it's fired.
                 if not existing_alert_buy_price:
                     # Writes a new update in Monday.com
-                    write_new_update(item_id=id, value=buy_price_percentage['alert_message'])
+                    # write_new_update(item_id=id, value=buy_price_percentage['alert_message'])
 
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = buy_price_percentage['alert_message'],
@@ -228,7 +233,7 @@ def activate_nv_invest_bot():
                 if not existing_alert_daily:
 
                     # Writes a new update in Monday.com
-                    write_new_update(item_id=coin_id, value=daily_percentage['alert_message'])
+                    # write_new_update(item_id=coin_id, value=daily_percentage['alert_message'])
 
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = daily_percentage['alert_message'],
@@ -255,7 +260,7 @@ def activate_nv_invest_bot():
                 if not existing_alert_weekly:
 
                     # Writes a new update in Monday.com
-                    write_new_update(item_id=coin_id, value=weekly_percentage['alert_message'])
+                    # write_new_update(item_id=coin_id, value=weekly_percentage['alert_message'])
                     
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = weekly_percentage['alert_message'],
@@ -296,7 +301,7 @@ def activate_nv_invest_bot():
 
 
 
-
+# __________________________ OLD CODE _______________________________-
 
 # def activate_nv_invest_bot():
 
@@ -515,7 +520,7 @@ def activate_nv_invest_bot():
 #         return f'Error executing NV Invest BOT {str(e)}', 500
 
 
- # board_ids = {
+# board_ids = {
     # 'KuCoin Master Sheet': {'board_id': 1362987416},
     # 'NV OKX Master Sheet': {'board_id': 1364995332},
     # 'Bybit Sepia Wallet Master Sheet': {'board_id': 1365577256},
