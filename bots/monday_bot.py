@@ -207,7 +207,7 @@ def activate_nv_invest_bot():
                 # If alert does not exist during the day, then it's fired.
                 if not existing_alert_buy_price:
                     # Writes a new update in Monday.com
-                    # write_new_update(item_id=id, value=buy_price_percentage['alert_message'])
+                    write_new_update(item_id=id, value=buy_price_percentage['alert_message'])
 
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = buy_price_percentage['alert_message'],
@@ -235,7 +235,7 @@ def activate_nv_invest_bot():
                 if not existing_alert_daily:
 
                     # Writes a new update in Monday.com
-                    # write_new_update(item_id=coin_id, value=daily_percentage['alert_message'])
+                    write_new_update(item_id=coin_id, value=daily_percentage['alert_message'])
 
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = daily_percentage['alert_message'],
@@ -262,7 +262,7 @@ def activate_nv_invest_bot():
                 if not existing_alert_weekly:
 
                     # Writes a new update in Monday.com
-                    # write_new_update(item_id=coin_id, value=weekly_percentage['alert_message'])
+                    write_new_update(item_id=coin_id, value=weekly_percentage['alert_message'])
                     
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = weekly_percentage['alert_message'],
@@ -290,11 +290,6 @@ def activate_nv_invest_bot():
 
 
 
-
-
-
-
-activate_nv_invest_bot()
 
 
 
