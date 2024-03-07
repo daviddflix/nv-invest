@@ -174,7 +174,7 @@ def get_board_items(board_ids, limit=500):
 
                     symbol = None
                     buy_price = None
-                    total_quantity_value = None
+                    total_quantity_value = 0
                     for row in column_values:
                         if row['id'] == code_column_id:
                             symbol = row['text'].casefold().strip()

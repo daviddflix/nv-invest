@@ -19,7 +19,7 @@ rajan_user_id = 53845740
 kontopyrgou_user_id = 53889497
 DEX_board_id = 1355568860
 
-users_ids = [david_user_id]
+users_ids = [david_user_id, aman_user_id, kontopyrgou_user_id]
 
 # Notifies to #Logs channel in Slack
 def log_and_notify_error(error_message, title_message="Error executing NV Invest Bot", sub_title="Response", SLACK_CHANNEL_ID="C06FTS38JRX"):
@@ -207,7 +207,7 @@ def activate_nv_invest_bot():
                 # If alert does not exist during the day, then it's fired.
                 if not existing_alert_buy_price:
                     # Writes a new update in Monday.com
-                    # write_new_update(item_id=id, value=buy_price_percentage['alert_message'])
+                    write_new_update(item_id=id, value=buy_price_percentage['alert_message'])
 
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = buy_price_percentage['alert_message'],
@@ -233,7 +233,7 @@ def activate_nv_invest_bot():
                 if not existing_alert_daily:
 
                     # Writes a new update in Monday.com
-                    # write_new_update(item_id=coin_id, value=daily_percentage['alert_message'])
+                    write_new_update(item_id=coin_id, value=daily_percentage['alert_message'])
 
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = daily_percentage['alert_message'],
@@ -260,7 +260,7 @@ def activate_nv_invest_bot():
                 if not existing_alert_weekly:
 
                     # Writes a new update in Monday.com
-                    # write_new_update(item_id=coin_id, value=weekly_percentage['alert_message'])
+                    write_new_update(item_id=coin_id, value=weekly_percentage['alert_message'])
                     
                     # Saves the alert to the DB
                     new_alert = Alert(alert_message = weekly_percentage['alert_message'],
