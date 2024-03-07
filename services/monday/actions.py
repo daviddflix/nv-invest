@@ -41,7 +41,7 @@ def calculate_profit(current_price, buy_price, total_quantity):
     try:
         if not current_price or not buy_price or not total_quantity:
             print("Can't calculate profit, not all required values are present")
-            return False
+            return {'message': "Can't calculate profit, not all required values are present", 'status': False}
 
         # Ensure input values are numeric
         current_price = float(current_price)
@@ -55,15 +55,15 @@ def calculate_profit(current_price, buy_price, total_quantity):
         # Calculate profit using the provided formula
         profit = (current_price - buy_price) * total_quantity
 
-        return profit
+        return {'message': profit, 'status': True}
 
     except ValueError as ve:
         print(f"Error: {ve}")
-        return False
+        return {'message': f"Error: {ve}", 'status': False}
 
     except Exception as e:
         print(f"An unexpected error occurred: {e}" )
-        return False
+        return {'message': f"An unexpected error occurred: {e}", 'status': False}
 
 # Gets the items of the boards along with its, ID, name, column values, buy price of the coin and board details - MONDAY NATIVE API
 def get_board_items(board_ids, limit=500):
@@ -174,7 +174,7 @@ def get_board_items(board_ids, limit=500):
 
                     symbol = None
                     buy_price = None
-                    total_quantity_value = None
+                    total_quantity_value = 0
                     for row in column_values:
                         if row['id'] == code_column_id:
                             symbol = row['text'].casefold().strip()
@@ -203,11 +203,11 @@ def get_board_items(board_ids, limit=500):
                                     'board_name': board_name, 'coin_symbol': symbol, 'buy_price': buy_price,
                                     })
 
-            # # Save coins_data to a text file
-            # with open('coins_data.txt', 'w') as file:
-            #     for coin in coins_data:
-            #         file.write(str(coin) + '\n')
-
+            # Save coins_data to a text file
+            with open('coins_data.txt', 'w') as file:
+                for coin in coins_data:
+                    file.write(str(coin) + '\n')
+            print('Len coins:', len(coins_data))
             return coins_data
         else:
             print(f'Error getting board items: {response.content}')
@@ -296,4 +296,4 @@ def get_column_ids(board_id):
 # print(change_column_value(board_id=1355564217, item_id=1355566235, column_id="numbers7", value="0.0002"))
 
 
-# print(get_board_items(board_ids=[1366238676]))
+# get_board_items(board_ids=[1364995332])

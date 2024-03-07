@@ -19,7 +19,7 @@ rajan_user_id = 53845740
 kontopyrgou_user_id = 53889497
 DEX_board_id = 1355568860
 
-users_ids = [david_user_id]
+users_ids = []
 
 # Notifies to #Logs channel in Slack
 def log_and_notify_error(error_message, title_message="Error executing NV Invest Bot", sub_title="Response", SLACK_CHANNEL_ID="C06FTS38JRX"):
@@ -129,6 +129,7 @@ def activate_nv_invest_bot():
         
         validate_and_save_coins(coins=coins_item, users_ids=users_ids)
 
+        # Gets all the coins saved in the DB
         all_coins = session.query(Coin).order_by(Coin.created_at).all()
         coins_item = [coin.as_dict() for coin in all_coins]
 
@@ -164,14 +165,17 @@ def activate_nv_invest_bot():
                                       buy_price=buy_price, 
                                       total_quantity=total_quantity_value)
 
-            if profit:
+            if profit['status'] == True:
                 change_column_value(board_id=board_id, 
                                     item_id=coin_id, 
                                     column_id=projected_value_column_id, 
-                                    value=profit) 
-                print(f'---Profit column updated for {coin_name}, profit: {profit}---')
+                                    value=profit['message']) 
+                print(f'---Profit column updated for {coin_name}, profit: {profit["message"]}---')
             else:
                 print(f'---No profit for {coin_name}---')
+                for user_id in users_ids:
+                    create_notification(user_id=user_id, item_id=coin_id, 
+                                        value=f"Can't calculate the profit for {coin_name} ({coin_symbol.upper()}) - {profit['message']}")
 
             # --- calculate the percentages of the Daily, Weekly and Buy Price compared to the current ----
             buy_price_percentage = calculate_percentage_change_over_buy_price(buy_price=buy_price, 
@@ -182,13 +186,9 @@ def activate_nv_invest_bot():
             
             weekly_percentage = percentage_variation_week(coin=coin_name, 
                                                 price_change_weekly=price_change_weekly)
-            if not buy_price_percentage:
-                print(f'No buy price percentage for {coin_name}')
-                for user_id in users_ids:
-                    create_notification(user_id=user_id, item_id=coin_id, 
-                                        value=f"Can't calculate profit and percentage change; No Buy Price found for: {coin_name} ({coin_symbol.upper()})")
-
-            if buy_price_percentage:
+        
+            
+            if buy_price_percentage['status'] == True:
                 percentage_change = buy_price_percentage['percentage_change']
                 if percentage_change:
                     change_column_value(board_id=board_id, 
@@ -219,7 +219,9 @@ def activate_nv_invest_bot():
                     # creates a notification for all the users that are in the list
                     for user_id in users_ids:
                         create_notification(user_id=user_id, item_id=coin_id, value=buy_price_percentage['alert_message'])  
-            
+            else:
+                print(f"{coin_name} buy price response: ", buy_price_percentage['message'])
+
             if not daily_percentage:
                 print(f'No daily percentage for {coin_name}')
             
@@ -292,7 +294,7 @@ def activate_nv_invest_bot():
 
 
 
-
+activate_nv_invest_bot()
 
 
 
