@@ -51,7 +51,7 @@ def closest_multiples_of_10(number):
     try:
         lower_multiple = (float(number) // 10) * 10
         if lower_multiple == 0:
-            return False
+            return "0"
         return lower_multiple
     except Exception as e:
         print(f"Error calculating the closest multiple of 10 to {str(number)}. {str(e)}")
@@ -64,7 +64,7 @@ def closest_multiples_of_5(number):
         lower_multiple = (float(number) // 5) * 5
       
         if lower_multiple == 0:
-            return False
+            return "0"
         return lower_multiple
     except Exception as e:
         print(f"Error calculating the closest multiple of 5 to {str(number)}. {str(e)}")
@@ -76,7 +76,7 @@ def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
     try:
         if not buy_price or not current_price or not coin:
             print("Can't calculate BUY PRICE percentage, not all required values are present")
-            return None
+            return {'message': "Can't calculate BUY PRICE percentage, not all required values are present", 'status': False}
 
         percentage_change = ((float(current_price) - float(buy_price)) / float(buy_price)) * 100
    
@@ -86,16 +86,17 @@ def calculate_percentage_change_over_buy_price(buy_price, current_price, coin):
 
         if closest_percentage:
             return {'alert_message': f'The price of {coin.capitalize()} has {direction.upper()} in {closest_percentage}% from your original buy price.',
-                    'alert_type': f'{closest_percentage}', 'percentage_change': closest_percentage}
+                    'alert_type': f'{closest_percentage}', 'percentage_change': closest_percentage, 'status': True}
         else:
-            return None
+            return {'message': f"General Error calculating percentage change over Buy Price; ", 'status': False}
 
     except ZeroDivisionError:
         print(f"Error calculating buy price change for {coin}: Buy price cannot be zero.")
-        return None
+        return {'message': f"Error calculating buy price change for {coin}: Buy price cannot be zero.", 'status': False}
+
     except Exception as e:
         print(f"Error: {str(e)}")
-        return None
+        return {'message': f"Error: {str(e)}", 'status': False}
 
 
 # Checks the percentage change of a coin in a day
@@ -128,7 +129,7 @@ def percentage_variation_daily(coin, price_change_daily):
 def percentage_variation_week(coin, price_change_weekly):
 
     if not coin or not price_change_weekly:
-        print("Can'r calculate WEEKLY percentage, not all required values are present")
+        print("Can't calculate WEEKLY percentage, not all required values are present")
         return None
     
     direction = "increased" if float(price_change_weekly) >= 0 else "decreased"
