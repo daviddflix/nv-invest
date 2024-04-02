@@ -204,10 +204,10 @@ def get_board_items(board_ids, limit=500):
                                     })
 
             # Save coins_data to a text file
-            with open('coins_data.txt', 'w') as file:
-                for coin in coins_data:
-                    file.write(str(coin) + '\n')
-            print('Len coins:', len(coins_data))
+            # with open('coins_data.txt', 'w') as file:
+            #     for coin in coins_data:
+            #         file.write(str(coin) + '\n')
+            # print('Len coins:', len(coins_data))
             return coins_data
         else:
             print(f'Error getting board items: {response.content}')

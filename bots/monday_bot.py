@@ -126,8 +126,6 @@ def activate_nv_invest_bot():
             print("--- Error while getting items from Monday boards ---")
             log_and_notify_error(error_message="Error while getting items from Monday boards")
             return 'Error while getting items from Monday boards'
-        print('coins_item: ', coins_item)
-        return 'All coins updated'
         
         validate_and_save_coins(coins=coins_item, users_ids=users_ids)
 
