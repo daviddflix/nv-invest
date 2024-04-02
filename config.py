@@ -38,8 +38,8 @@ class Coin(Base):
     valuation_price_column_id = Column(String, nullable=False)
     percentage_change_column_id = Column(String, nullable=False)
     projected_value_column_id = Column(String, nullable=False)
-    created_at = Column(TIMESTAMP, default=datetime.utcnow)
-    updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now, onupdate=datetime.now) 
 
     alerts = relationship('Alert', back_populates='coin')
 
@@ -53,8 +53,8 @@ class Alert(Base):
     alert_message = Column(String, nullable=False)
     alert_type = Column(String, nullable=False)
     coin_id = Column(Integer, ForeignKey('monday_coin.coin_id'), nullable=False)  
-    created_at = Column(TIMESTAMP, default=datetime.utcnow)
-    updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now, onupdate=datetime.now) 
 
     coin = relationship('Coin', back_populates='alerts', lazy=True) 
 
@@ -66,17 +66,54 @@ class Board(Base):
     board_id = Column(Integer, primary_key=True, autoincrement=True)
     board_name = Column(String, nullable=False)
     monday_board_id = Column(Integer, nullable=False)
-    created_at = Column(TIMESTAMP, default=datetime.utcnow)
-    updated_at = Column(TIMESTAMP, default=datetime.utcnow, onupdate=datetime.utcnow) 
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now, onupdate=datetime.now) 
 
     def as_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+    
 
+class Bot(Base):
+    __tablename__ = 'nv_invest_bot'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String, nullable=False)
+    description = Column(String, nullable=False)
+    interval = Column(Integer, default=3)
+    status = Column(Boolean, default=False)
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now, onupdate=datetime.now) 
 
+    errors = relationship('Error', back_populates='bot')
 
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+    
+
+class Error(Base):
+    __tablename__ = 'nv_invest_bot_error'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    bot_id = Column(Integer, ForeignKey('nv_invest_bot.id'), nullable=False) 
+    description = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP, default=datetime.now)
+
+    bot = relationship("Bot", back_populates="errors")
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
 Base.metadata.create_all(engine)
 
 # Export the sql session
 Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 session = Session()  
+
+
+
+try:
+    if not session.query(Bot).filter_by(name="nv invest").first():
+        new_bot = Bot(name="nv invest", description="This bot aims to update tokens on Monday.com")
+        session.add(new_bot)
+        session.commit()
+        print('Default NV Invest Bot Created')
+except Exception as e:
+    print(f'Error creating default bot. {str(e)} ')
