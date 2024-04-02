@@ -1,29 +1,8 @@
-from datetime import datetime
-from scheduler import scheduler
 from flask import Blueprint, request, jsonify
-from bots.monday_bot import activate_nv_invest_bot
 from werkzeug.exceptions import BadRequest
-from config import session, Board
+from config import session, Board, Session
 
 monday_bp = Blueprint('monday', __name__)
-
-# Activates the Monday Bot
-@monday_bp.route('/activate/nv_bot', methods=['POST'])
-def index():
-    try:
-        command = request.args.get('command')
-        if command == 'activate':
-            activate_nv_invest_bot()
-            # scheduler.add_job(activate_nv_invest_bot, 'interval', id='nv invest', hours=4, next_run_time=datetime.now(), replace_existing=True)
-            return 'NV Invest Bot activated', 200
-        elif command == 'deactivate':
-            scheduler.remove_job(job_id='nv invest')
-            return 'NV Invest Bot deactivated', 200
-        else:
-            return 'Command not valid', 400
-    except Exception as e:
-        return str(e), 500
-
 
 # Adds a new Monday.com Board
 @monday_bp.route('/add_board', methods=['POST'])
@@ -39,19 +18,20 @@ def add_new_monday_board():
 
         board_name = data['board_name'].casefold().strip()
         board_id = data['board_id']
-
-        existing_board = session.query(Board).filter_by(board_name=board_name, monday_board_id=board_id).first()
-        if not existing_board:
-            new_board = Board(
-                board_name=board_name, monday_board_id=board_id
-            )
-            session.add(new_board)
-            session.commit()
-            return jsonify({'message': 'New board added', 'status': 200}), 200
-        else:
-            return jsonify({'message': 'Board already exists', 'status': 409, 'existing_board': existing_board.as_dict()}), 409
+        with Session() as session:
+            existing_board = session.query(Board).filter_by(board_name=board_name, monday_board_id=board_id).first()
+            if not existing_board:
+                new_board = Board(
+                    board_name=board_name, monday_board_id=board_id
+                )
+                session.add(new_board)
+                session.commit()
+                return jsonify({'message': 'New board added', 'status': 200}), 200
+            else:
+                return jsonify({'message': 'Board already exists', 'status': 409, 'existing_board': existing_board.as_dict()}), 409
 
     except BadRequest as e:
+        session.rollback()
         return jsonify({'error': str(e), 'status': 400}), 400
     except Exception as e:
         session.rollback()
