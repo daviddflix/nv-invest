@@ -25,18 +25,18 @@ def get_list_of_coins():
         if coingecko_response.status_code == 200:
             data = coingecko_response.json()
             
-            # Save coins_data to a JSON file
-            with open('coingecko_coins.json', 'w', encoding='utf-8') as file:
-                json.dump(data, file, ensure_ascii=False, indent=3)
+            # # Save coins_data to a JSON file
+            # with open('coingecko_coins.json', 'w', encoding='utf-8') as file:
+            #     json.dump(data, file, ensure_ascii=False, indent=3)
 
-            # Save coins_data to a text file as a JSON-formatted string
-            with open('coingecko_coins.txt', 'w', encoding='utf-8') as file:
-                file.write(json.dumps(data, ensure_ascii=False, indent=3))
+            # # Save coins_data to a text file as a JSON-formatted string
+            # with open('coingecko_coins.txt', 'w', encoding='utf-8') as file:
+            #     file.write(json.dumps(data, ensure_ascii=False, indent=3))
 
-            # Save coins_data to a text file
-            with open('coingecko_coins_2.txt', 'w', encoding='utf-8') as file:
-                for coin in data:
-                    file.write(str(coin) + '\n')
+            # # Save coins_data to a text file
+            # with open('coingecko_coins_2.txt', 'w', encoding='utf-8') as file:
+            #     for coin in data:
+            #         file.write(str(coin) + '\n')
 
             return coingecko_response.json(), coingecko_response.status_code
         else:
