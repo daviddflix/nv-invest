@@ -2,10 +2,146 @@ import requests
 from monday.exceptions import MondayError
 from services.monday.monday_client import monday_client, monday_url, MONDAY_API_KEY_NOVATIDE
 
+
 headers = {
     "Content-Type": "application/json",
     "Authorization": MONDAY_API_KEY_NOVATIDE
 }
+
+# ---------------------------- NV BOT S&R ----------------------
+
+# Get all private board, if search param is passed, the board that match the param will be return
+def get_all_boards(search_param=None, board_kind='private'):
+    query = f"""
+    query {{
+      boards(board_kind: {board_kind}) {{
+        id 
+        name
+        board_kind
+      }}
+    }}
+    """
+    
+    result = {
+        'error': None,
+        'success': False,
+        'data': None
+    }
+
+    try:
+        response = requests.post(monday_url, headers=headers, json={'query': query})
+        response.raise_for_status()  # Check for HTTP errors
+
+        data = response.json()
+
+        # Check for errors in the response
+        if 'errors' in data:
+            result['error'] = data['errors']
+        else:
+            boards = data['data']['boards']
+            if search_param:
+                # Filter boards based on the search parameter
+                boards = [board for board in boards if search_param.lower() in board['name'].lower()]
+            
+            result['success'] = True
+            result['data'] = boards
+    
+    except requests.exceptions.RequestException as e:
+        result['error'] = str(e)
+    
+    except Exception as e:
+        result['error'] = str(e)
+    
+    return result
+
+
+# Get column id, name and value of each column and row in the boards
+def get_board_item_general(board_ids, limit=500):
+    result = {'error': None, 'data': [], 'success': False}
+    
+    if not board_ids or not isinstance(board_ids, list):
+        result['error'] = 'Invalid board_ids parameter. It should be a non-empty list.'
+        return result
+    
+    if not isinstance(limit, int) or limit <= 0:
+        result['error'] = 'Invalid limit parameter. It should be a positive integer.'
+        return result
+
+    board_ids_str = ', '.join(map(str, board_ids))
+    
+    query = f'''
+    query {{
+        boards(ids: [{board_ids_str}]) {{
+            id
+            name
+            columns {{
+                title
+                id
+            }}
+            items_page(limit: {limit}) {{
+                items {{
+                    id
+                    name
+                    column_values {{
+                        id
+                        text
+                    }}
+                }}
+            }}
+        }}
+    }}
+    '''
+    
+    try:
+        response = requests.post(monday_url, headers=headers, json={'query': query})
+        response.raise_for_status()  # Check for HTTP errors
+
+        data = response.json()
+        
+        if 'errors' in data:
+            result['error'] = data['errors']
+        else:
+            boards = data['data']['boards']
+            transformed_data = []
+            
+            for board in boards:
+                board_data = {
+                    'board_name': board['name'],
+                    'board_id': board['id'],
+                    'data': []
+                }
+                
+                columns_dict = {col['id']: col['title'] for col in board['columns']}
+                
+                for item in board['items_page']['items']:
+                    item_data = {
+                        'column_id': item['id'],
+                        'column_name': item['name'],
+                        'column_values': [
+                            {
+                                'column_id': col_val['id'],
+                                'column_name': columns_dict[col_val['id']],
+                                'column_value': col_val['text']
+                            } for col_val in item['column_values'] if col_val['text'] is not None
+                        ]
+                    }
+                    board_data['data'].append(item_data)
+                
+                transformed_data.append(board_data)
+            
+            result['data'] = transformed_data
+            result['success'] = True
+
+    except requests.exceptions.RequestException as e:
+        result['error'] = str(e)
+    
+    except Exception as e:
+        result['error'] = str(e)
+    
+    return result
+
+
+# ----------------------- NV BOT -------------------------
 
 # Creates a new notification in the Monday Notification center - MONDAY NATIVE API
 def create_notification(user_id, item_id, value):
@@ -35,6 +171,7 @@ def create_notification(user_id, item_id, value):
     except Exception as e:
         print(f'Error found creating update {str(e)}')
         return False
+
 
 # Calculate the profit of a coin compared to the Buy Price
 def calculate_profit(current_price, buy_price, total_quantity):
@@ -252,6 +389,7 @@ def change_column_value(item_id, board_id, column_id, value):
         return False
 
 
+
 # Updates the item with a new message - MONDAY LIBRARY
 def write_new_update(item_id, value):
     try:
@@ -285,6 +423,7 @@ def get_column_ids(board_id):
     except Exception as e:
         print(f'Error getting column IDs, error: {str(e)}')
         return None
+
 
 
 

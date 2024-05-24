@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from werkzeug.exceptions import BadRequest
-from config import session, Board, Session
+from config import session, Board, Session, Bot
+from sqlalchemy.exc import SQLAlchemyError
 
 monday_bp = Blueprint('monday', __name__)
 
@@ -85,6 +86,33 @@ def edit_monday_board(board_id):
         session.rollback()
         return jsonify({'error': str(e), 'status': 500}), 500
 
+
+# Update the time interval of a bot
+@monday_bp.route('/update_interval', methods=['PUT'])
+def update_interval():
+    try:
+        bot_id=request.args.get('bot_id')
+        new_interval=request.args.get('new_interval')
+
+        if not bot_id or not new_interval:
+            return jsonify({'error': 'One or more required parameters are missing'}), 400
+        
+        # Query the bot by its ID
+        bot = session.query(Bot).filter(Bot.id == bot_id).first()
+
+        if bot:
+            # Update the interval
+            bot.interval = new_interval
+            session.commit()
+            return jsonify({'message': f'Interval for Bot {bot.name} updated successfully'}), 200
+        else:
+            return jsonify({'error': 'Bot not found'}), 404
+    except SQLAlchemyError as e:
+        session.rollback()
+        return jsonify({'error': str(e)}), 500
+    except Exception as e:
+        return jsonify({'error': 'An unexpected error occurred'}), 500
+    
 
 # Get all Monday.com Boards
 @monday_bp.route('/get_all_boards', methods=['GET'])

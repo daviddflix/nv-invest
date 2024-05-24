@@ -1,7 +1,8 @@
 from flask import Flask
 from flask_cors import CORS
 from routes.monday_routes.monday import monday_bp
-from routes.nv_invest_bot_routes.nv_bot import nv_invest_bot_bp
+from routes.nv_invest_bot.nv_bot import nv_invest_bot_bp
+from routes.nv_invest_bot_monitor.monitor_prices import monday_monitor_bp
 
 app = Flask(__name__)
 app.name = 'NV Invest Bot'
@@ -9,6 +10,7 @@ CORS(app)
 
 app.register_blueprint(monday_bp)
 app.register_blueprint(nv_invest_bot_bp)
+app.register_blueprint(monday_monitor_bp)
     
     
 if __name__ == '__main__':
