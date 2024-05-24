@@ -107,13 +107,19 @@ Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine, autoflush=False, expire_on_commit=False)
 session = Session()  
 
+# Create a bot entry in the database if it does not already exist.
+def create_bot_entry(name, description):
+
+    try:
+        if not session.query(Bot).filter_by(name=name).first():
+            new_bot = Bot(name=name, description=description)
+            session.add(new_bot)
+            session.commit()
+            print(f'Default Bot "{name}" Created')
+    except Exception as e:
+        print(f'Error creating bot "{name}". {str(e)}')
 
 
-try:
-    if not session.query(Bot).filter_by(name="nv invest").first():
-        new_bot = Bot(name="nv invest", description="This bot aims to update tokens on Monday.com")
-        session.add(new_bot)
-        session.commit()
-        print('Default NV Invest Bot Created')
-except Exception as e:
-    print(f'Error creating default bot. {str(e)} ')
+create_bot_entry("nv invest", "This bot aims to update tokens on Monday.com")
+create_bot_entry("nv invest - monitor", "This bot aims to monitor prices and send alerts when take profits are hit")
+

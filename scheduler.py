@@ -20,7 +20,7 @@ def job_executed(event):
     try:
         job_id = str(event.job_id).capitalize()
         with Session() as session:
-            nv_invest_bot = session.query(Bot).filter_by(name="nv invest").first()
+            nv_invest_bot = session.query(Bot).filter_by(name=str(event.job_id)).first()
             if nv_invest_bot:
                 london_timezone = pytz.timezone('Europe/London')
                 current_time_uk = datetime.now(london_timezone)

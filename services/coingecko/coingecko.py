@@ -38,7 +38,7 @@ def get_list_of_coins():
             #     for coin in data:
             #         file.write(str(coin) + '\n')
 
-            return coingecko_response.json(), coingecko_response.status_code
+            return data, coingecko_response.status_code
         else:
             return coingecko_response.content, coingecko_response.status_code
     except Exception as e:
