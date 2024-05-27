@@ -20,8 +20,8 @@ def index():
                 if nv_invest_bot.status:
                     return 'Bot is already active', 200
                 
-                scheduler.add_job(monday_monitor_prices, 'interval', id=nv_invest_bot.name, minutes=4, replace_existing=True)
-                # scheduler.add_job(monday_monitor_prices, 'interval', id=nv_invest_bot.name, hours=nv_invest_bot.interval, replace_existing=True)
+                # scheduler.add_job(monday_monitor_prices, 'interval', id=nv_invest_bot.name, minutes=4, replace_existing=True)
+                scheduler.add_job(monday_monitor_prices, 'interval', id=nv_invest_bot.name, hours=nv_invest_bot.interval, replace_existing=True)
                 nv_invest_bot.status = True
                 session.commit()
                 return 'NV Invest Bot activated', 200

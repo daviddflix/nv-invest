@@ -9,11 +9,11 @@ def log_and_notify_error(error_message,
                          title_message="NV Invest Bot has an error", 
                          sub_title="Response", 
                          SLACK_CHANNEL_ID='C0753RC839P'):
-    print('--- Error message to send: ', error_message)
-    # send_INFO_message_to_slack_channel(channel_id=SLACK_CHANNEL_ID, 
-    #                                    title_message=title_message, 
-    #                                    sub_title=sub_title,
-    #                                    message=error_message)
+    # print('--- Error message to send: ', error_message)
+    send_INFO_message_to_slack_channel(channel_id=SLACK_CHANNEL_ID, 
+                                       title_message=title_message, 
+                                       sub_title=sub_title,
+                                       message=error_message)
 
 
 # Notifies to #monday-tp-alerts when a TP is hit
@@ -21,11 +21,11 @@ def log_and_notify(message,
                          title_message="NV Invest Bot", 
                          sub_title="Notification", 
                          SLACK_CHANNEL_ID='C0753RC839P'):
-    print('--- Message to send: ', message)
-    # send_INFO_message_to_slack_channel(channel_id=SLACK_CHANNEL_ID, 
-    #                                    title_message=title_message, 
-    #                                    sub_title=sub_title,
-    #                                    message=error_message)
+    # print('--- Message to send: ', message)
+    send_INFO_message_to_slack_channel(channel_id=SLACK_CHANNEL_ID, 
+                                       title_message=title_message, 
+                                       sub_title=sub_title,
+                                       message=message)
 
 
 # Function to check if a target price has been hit
