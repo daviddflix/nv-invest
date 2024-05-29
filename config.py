@@ -101,6 +101,47 @@ class Error(Base):
     def as_dict(self):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
+# ------------------------------ NV INVEST MONITOR BOT ---------------------------------------
+
+
+class Token(Base):
+    __tablename__ = 'tokens'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    symbol=Column(String)
+    name = Column(String, nullable=False)
+    take_profit_1 = Column(String)
+    take_profit_2 = Column(String)
+    take_profit_3 = Column(String)
+    take_profit_4 = Column(String)
+    monday_id = Column(Integer)
+    board_name = Column(String)
+    average_buy_price = Column(String)
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
+    
+    token_alerts = relationship('TokenAlert', back_populates='token')
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+class TokenAlert(Base):
+    __tablename__ = 'token_alerts'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    token_id = Column(Integer, ForeignKey('tokens.id'), nullable=False)
+    message = Column(String, nullable=False)
+    type = Column(String, nullable=False)
+    created_at = Column(TIMESTAMP, default=datetime.now)
+    updated_at = Column(TIMESTAMP, default=datetime.now, onupdate=datetime.now)
+    
+    token = relationship('Token', back_populates='token_alerts')
+
+    def as_dict(self):
+        return {column.name: getattr(self, column.name) for column in self.__table__.columns}
+
+
+
 Base.metadata.create_all(engine)
 
 # Export the sql session
