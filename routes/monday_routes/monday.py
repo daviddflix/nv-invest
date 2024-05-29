@@ -88,14 +88,14 @@ def edit_monday_board(board_id):
 
 
 # Update the time interval of a bot
-@monday_bp.route('/update_interval', methods=['PUT'])
+@monday_bp.route('/update_interval', methods=['PUT', 'POST'])
 def update_interval():
     try:
         bot_id=request.args.get('bot_id')
         new_interval=request.args.get('new_interval')
 
         if not bot_id or not new_interval:
-            return jsonify({'error': 'One or more required parameters are missing'}), 400
+            return jsonify({'error': 'One or more required parameters are missing', 'success': False}), 400
         
         # Query the bot by its ID
         bot = session.query(Bot).filter(Bot.id == bot_id).first()
@@ -104,14 +104,14 @@ def update_interval():
             # Update the interval
             bot.interval = new_interval
             session.commit()
-            return jsonify({'message': f'Interval for Bot {bot.name} updated successfully'}), 200
+            return jsonify({'response': f'Interval for Bot {bot.name} updated successfully', 'success': True}), 200
         else:
             return jsonify({'error': 'Bot not found'}), 404
     except SQLAlchemyError as e:
         session.rollback()
-        return jsonify({'error': str(e)}), 500
+        return jsonify({'error': str(e), 'success': False}), 500
     except Exception as e:
-        return jsonify({'error': 'An unexpected error occurred'}), 500
+        return jsonify({'error': 'An unexpected error occurred', 'success': False}), 500
     
 
 # Get all Monday.com Boards
