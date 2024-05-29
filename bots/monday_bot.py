@@ -18,11 +18,12 @@ aman_user_id = 53919777
 rajan_user_id = 53845740
 kontopyrgou_user_id = 53889497
 DEX_board_id = 1355568860
+LOGS_SLACK_CHANNEL='C06FTS38JRX'
 
 users_ids = []
 
 # Notifies to #Logs channel in Slack
-def log_and_notify_error(error_message, title_message="Error executing NV Invest Bot", sub_title="Response", SLACK_CHANNEL_ID="C06FTS38JRX"):
+def log_and_notify_error(error_message, title_message="Error executing NV Invest Bot", sub_title="Response", SLACK_CHANNEL_ID=LOGS_SLACK_CHANNEL):
     send_INFO_message_to_slack_channel(channel_id=SLACK_CHANNEL_ID, 
                                        title_message=title_message, 
                                        sub_title=sub_title,

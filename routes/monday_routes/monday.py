@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify
 from werkzeug.exceptions import BadRequest
 from config import session, Board, Session, Bot
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import func
 
 monday_bp = Blueprint('monday', __name__)
 
@@ -125,3 +126,31 @@ def get_all_monday_boards():
 
     except Exception as e:
         return jsonify({'error': str(e), 'status': 500}), 500
+
+
+# Searches all boards with the given arg.
+@monday_bp.route('/search_boards', methods=['GET'])
+def search_boards():
+    response = {
+        'data': None,
+        'error': None,
+        'success': False
+    }
+    
+    try:
+        search_string = request.args.get('query')
+        
+        if not search_string:
+            response['error'] = "No search query provided."
+            return jsonify(response)
+        
+        # Perform a case-insensitive search
+        search_string = search_string.casefold()
+        results = session.query(Board).filter(func.lower(Board.board_name).contains(search_string)).all()
+        
+        response['data'] = [board.as_dict() for board in results]
+        response['success'] = True
+    except Exception as e:
+        response['error'] = str(e)
+    
+    return jsonify(response)
