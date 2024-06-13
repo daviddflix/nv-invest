@@ -2,7 +2,7 @@ from services.coingecko.coingecko import check_price, get_list_of_coins
 from services.slack.actions import send_INFO_message_to_slack_channel
 from services.monday.actions import get_all_boards, get_board_item_general, create_notification, write_new_update
 from config import Session, Board, Token, TokenAlert
-from datetime import datetime
+from datetime import datetime, date
 from collections import defaultdict
 
 david_user_id = 5391992
@@ -173,10 +173,9 @@ def process_token(token, available_tokens, board_name):
                     break
 
             if message:
-                print('message: ', message)
                 try:
-                    existing_alert = session.query(TokenAlert).filter_by(token_id=token_id, message=type.casefold()).first()
-
+                    existing_alert = session.query(TokenAlert).filter_by(token_id=token_id, type=type.casefold()).filter(TokenAlert.created_at >= date.today()).first()
+                  
                     if not existing_alert:
                         new_alert = TokenAlert(
                             token_id=token_id,
