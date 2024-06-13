@@ -1,7 +1,16 @@
 import requests
 from monday.exceptions import MondayError
-from services.monday.monday_client import monday_client, monday_url, MONDAY_API_KEY_NOVATIDE
+# from services.monday.monday_client import monday_client, monday_url, MONDAY_API_KEY_NOVATIDE
 
+import os 
+from monday import MondayClient
+from dotenv import load_dotenv
+load_dotenv() 
+
+MONDAY_API_KEY_NOVATIDE = os.getenv("MONDAY_API_KEY_NOVATIDE")
+
+monday_client = MondayClient(MONDAY_API_KEY_NOVATIDE)
+monday_url = "https://api.monday.com/v2"
 
 headers = {
     "Content-Type": "application/json",
@@ -14,7 +23,7 @@ headers = {
 def get_all_boards(search_param=None, board_kind='private'):
     query = f"""
     query {{
-      boards(board_kind: {board_kind}) {{
+      boards(board_kind: {board_kind}, limit: 200) {{
         id 
         name
         board_kind
@@ -435,4 +444,6 @@ def get_column_ids(board_id):
 # print(change_column_value(board_id=1355564217, item_id=1355566235, column_id="numbers7", value="0.0002"))
 
 
-# print(get_board_items(board_ids=[1368448935]))
+# get_board_items(board_ids=[1364995332])
+# print(get_all_boards(search_param="Master Sheet"))
+# print(get_board_item_general(board_ids=[1366234172]))
