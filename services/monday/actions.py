@@ -1,4 +1,6 @@
 import requests
+import json
+from ast import literal_eval
 from monday.exceptions import MondayError
 # from services.monday.monday_client import monday_client, monday_url, MONDAY_API_KEY_NOVATIDE
 
@@ -16,6 +18,10 @@ headers = {
     "Content-Type": "application/json",
     "Authorization": MONDAY_API_KEY_NOVATIDE
 }
+
+# Define a SUM function to handle the SUM in the formula
+def SUM(*args):
+    return sum(args)
 
 # ---------------------------- NV BOT S&R ----------------------
 
@@ -134,6 +140,121 @@ def get_board_item_general(board_ids, limit=500):
                             } for col_val in item['column_values'] if col_val['text'] is not None
                         ]
                     }
+                    board_data['data'].append(item_data)
+                
+                transformed_data.append(board_data)
+            
+            result['data'] = transformed_data
+            result['success'] = True
+
+    except requests.exceptions.RequestException as e:
+        result['error'] = str(e)
+    
+    except Exception as e:
+        result['error'] = str(e)
+    
+    return result
+
+# Get column id, name and value of each column and row in the boards
+def get_board_item_general_test(board_ids, limit=500):
+    result = {'error': None, 'data': [], 'success': False}
+    
+    if not board_ids or not isinstance(board_ids, list):
+        result['error'] = 'Invalid board_ids parameter. It should be a non-empty list.'
+        return result
+    
+    if not isinstance(limit, int) or limit <= 0:
+        result['error'] = 'Invalid limit parameter. It should be a positive integer.'
+        return result
+
+    board_ids_str = ', '.join(map(str, board_ids))
+    
+    query = f'''
+    query {{
+        boards(ids: [{board_ids_str}]) {{
+            id
+            name
+            columns {{
+                title
+                id
+                settings_str
+            }}
+            items_page(limit: {limit}) {{
+                items {{
+                    id
+                    name
+                    column_values {{
+                        id
+                        text
+                    }}
+                }}
+            }}
+        }}
+    }}
+    '''
+    
+    try:
+        response = requests.post(monday_url, headers=headers, json={'query': query})
+        response.raise_for_status()  # Check for HTTP errors
+
+        data = response.json()
+        
+        if 'errors' in data:
+            result['error'] = data['errors']
+        else:
+            boards = data['data']['boards']
+            transformed_data = []
+            
+            for board in boards:
+                board_data = {
+                    'board_name': board['name'],
+                    'board_id': board['id'],
+                    'data': []
+                }
+                
+                columns_dict = {col['id']: col['title'] for col in board['columns']}
+                columns_formulas = {col['id']: col['settings_str'] for col in board['columns']}
+                
+                for item in board['items_page']['items'][:1]:
+                    item_data = {
+                        'item_id': item['id'],
+                        'item_name': item['name'],
+                        'column_values': []
+                    }
+
+                    column_values_dict = {col_val['id']: col_val['text'] for col_val in item['column_values']}
+                   
+                    for col_val in item['column_values']:
+                        column_formula = json.loads(columns_formulas[col_val['id']])
+                        is_formula = column_formula.get('formula', None)
+
+                        # Replace column IDs with actual values
+                        formula = is_formula
+                        if is_formula:
+                            for column_id, column_value in column_values_dict.items():
+                                column_value = column_value if column_value else 0
+                                formula = str(formula).replace("\n", "")
+                                formula = formula.replace(f"{{{column_id}}}", str(column_value))
+
+                        column_value_final = col_val['text']
+                        # Evaluate the formula
+                        if is_formula:
+                            
+                            try:
+                                column_value_final = eval(formula, {"SUM": SUM, "__builtins__": {}})
+                            except Exception as e:
+                                column_value_final = f'Error in formula: {str(e)}'
+                       
+                        
+                        item_data['column_values'].append({
+                            'type': 'formula' if is_formula else 'string',
+                            'column_id': col_val['id'],
+                            'column_name': columns_dict[col_val['id']],
+                            'column_value': column_value_final,
+                            'formula': formula if is_formula else None,
+                            'raw_formula': is_formula if is_formula else None
+                        })
+
                     board_data['data'].append(item_data)
                 
                 transformed_data.append(board_data)
@@ -435,6 +556,52 @@ def get_column_ids(board_id):
 
 
 
+def get_user_id(email=None):
+    """
+    Get the user ID of a user in Monday.com based on their email address.
+    
+    Args:
+        api_key (str): Your Monday.com API key.
+        email (str): The email address of the user whose ID you want to retrieve.
+        
+    Returns:
+        str: The user ID of the user with the given email address, or None if not found.
+    """
+
+    # Query parameters
+    query = """
+            query {
+            users(kind: all) {
+                id
+                name
+                email
+            }
+            }
+        """
+
+    response = requests.get(monday_url, headers=headers, json={"query": query})
+    
+    if response.status_code == 200:
+        users = response.json()["data"]["users"]
+        
+        if email:
+            # Search for the user with the given email address
+            for user in users:
+                if user["email"] == email:
+                    return user
+        
+        return users
+    else:
+        # Handle error
+        print(f"Error: {response.status_code} - {response.text}")
+        return None
+
+
+
+# Example usage
+# user_email = "s.tamulyte@novatidelabs.com"
+# print(get_user_id(user_email))
+
 
 # --------- TESTS ------------------------------
 
@@ -446,4 +613,4 @@ def get_column_ids(board_id):
 
 # get_board_items(board_ids=[1364995332])
 # print(get_all_boards(search_param="Master Sheet"))
-# print(get_board_item_general(board_ids=[1366234172]))
+# print(get_board_item_general_test(board_ids=[1397034863]))

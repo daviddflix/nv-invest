@@ -186,7 +186,7 @@ def process_token(token, available_tokens, board_name):
                         )
                         session.add(new_alert)
                         session.commit()
-                        create_notification(user_id=david_user_id, item_id=monday_token_id, value=message)
+                        # create_notification(user_id=david_user_id, item_id=monday_token_id, value=message)
                         write_new_update(item_id=monday_token_id, value=message)
                         log_and_notify(message=message)
                         token['message'] = message
