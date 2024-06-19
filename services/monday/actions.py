@@ -332,6 +332,7 @@ def calculate_profit(current_price, buy_price, total_quantity):
         print(f"An unexpected error occurred: {e}" )
         return {'message': f"An unexpected error occurred: {e}", 'status': False}
 
+
 # Gets the items of the boards along with its, ID, name, column values, buy price of the coin and board details - MONDAY NATIVE API
 def get_board_items(board_ids, limit=500):
 

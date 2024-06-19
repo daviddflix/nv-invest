@@ -271,7 +271,7 @@ def monday_monitor_prices():
 
             if data:
                 for token in data:
-                    process_token(token, available_tokens, board_name)       
+                    process_token(token, available_tokens, board_name)    
 
         response['data'] = items
         response['success'] = True

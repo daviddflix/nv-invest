@@ -25,6 +25,7 @@ DEX_board_id = 1355568860
 LOGS_SLACK_CHANNEL='C06FTS38JRX'
 MONDAY_TP_ALERTS='C0753RC839P'
 MONDAY_PRICE_VOLATILITY_SLACK_CHANNEL="C078K2GKG20"
+MONDAY_AUTOMATIONS_SLACK_CHANNEL="C0785HRL8G3"
 
 users_ids = [david_user_id]
 
@@ -33,11 +34,11 @@ def log_and_notify(error_message,
                          title_message="NV Invest Bot has an error", 
                          sub_title="Error", 
                          SLACK_CHANNEL_ID=MONDAY_TP_ALERTS):
-    # print('--- Error message to send: ', error_message)
-    send_INFO_message_to_slack_channel(channel_id=SLACK_CHANNEL_ID, 
-                                       title_message=title_message, 
-                                       sub_title=sub_title,
-                                       message=error_message)
+    print('--- Error message to send: ', error_message)
+    # send_INFO_message_to_slack_channel(channel_id=SLACK_CHANNEL_ID, 
+    #                                    title_message=title_message, 
+    #                                    sub_title=sub_title,
+    #                                    message=error_message)
 
 
 # Process each token
@@ -76,13 +77,15 @@ def initialize_available_tokens_dict(available_tokens):
 
 # Validates each coin against CoinGecko list of coins, if coin is valid, then it's added to the DB
 def process_coins(coin, available_tokens, board_name, board_id):
+    from collections import defaultdict
+    from datetime import datetime
 
     response = {'error': None, 'data': None, 'message': None, 'success': False, 'item_id': None}
 
     global available_tokens_dict
     if available_tokens_dict is None:
         initialize_available_tokens_dict(available_tokens)
-    
+
     token_name = coin.get('column_name')
     monday_token_id = coin.get('column_id')
     monday_token_values = coin.get('column_values')
@@ -95,7 +98,7 @@ def process_coins(coin, available_tokens, board_name, board_id):
         print(f"No values for {board_name}")
         response['error'] = f"No values found in {token_name}"
         return response
-    
+
     # Create a defaultdict
     token_data = defaultdict(lambda: None)
 
@@ -109,13 +112,12 @@ def process_coins(coin, available_tokens, board_name, board_id):
         if column_name == "valuation price":
             token_data['valuation_price_id'] = column_id
 
-
     if not token_data['symbol'] or not token_data['valuation_price_id']:
         print(f'{str(token_name).capitalize()} does not have all required parameters')
         response['error'] = f'{str(token_name).capitalize()} does not have all required parameters'
         return response
 
-    symbol = token_data['symbol'] 
+    symbol = token_data['symbol']
     valuation_price_id = token_data['valuation_price_id']
 
     # Check if the coin is already in the database
@@ -128,11 +130,11 @@ def process_coins(coin, available_tokens, board_name, board_id):
             coin_name=token_name,
             coin_symbol=symbol,
             buy_price='',
-            total_quantity_value='0',  
-            board_id=board_id, 
+            total_quantity_value='0',
+            board_id=board_id,
             board_name=board_name,
             valuation_price_column_id=valuation_price_id,
-            percentage_change_column_id='', 
+            percentage_change_column_id='',
             projected_value_column_id='',
             created_at=datetime.now(),
             updated_at=datetime.now()
@@ -145,7 +147,15 @@ def process_coins(coin, available_tokens, board_name, board_id):
                                 item_id=monday_token_id,
                                 value=f"{token_name} was added to the Monday Bot"
                                 )
-            
+    else:
+        # Update existing coin if name or symbol has changed
+        if existing_coin.coin_name != token_name or existing_coin.coin_symbol != symbol:
+            existing_coin.coin_name = token_name
+            existing_coin.coin_symbol = symbol
+            existing_coin.updated_at = datetime.now()
+            session.commit()
+            print(f'Updated coin: {token_name} with new name or symbol')
+
     key = (token_name.casefold(), token_data['symbol'].casefold())
     available_token = available_tokens_dict.get(key)
 
@@ -159,7 +169,6 @@ def process_coins(coin, available_tokens, board_name, board_id):
     price_data = check_price(coin=available_token['id'])
 
     if price_data and price_data.get('current_price'):
-
         token_price = price_data.get('current_price')
         price_change_daily = price_data.get('price_change_daily')
         token_data['token_price'] = token_price
@@ -167,28 +176,28 @@ def process_coins(coin, available_tokens, board_name, board_id):
 
         # update price on Monday.com
         if token_price:
-            change_column_value(board_id=board_id, 
-                                item_id=monday_token_id, 
-                                column_id=valuation_price_id, 
+            change_column_value(board_id=board_id,
+                                item_id=monday_token_id,
+                                column_id=valuation_price_id,
                                 value=token_price)
             print("--- Price update on Monday ----")
 
         if price_change_daily:
-            if float(price_change_daily) >= 20 or float(price_change_daily) <= -20: 
+            if float(price_change_daily) >= 20 or float(price_change_daily) <= -20:
                 direction_daily = "increased" if float(price_change_daily) >= 20 else "decreased"
                 message_daily = f"The price of {token_name.capitalize()} has {direction_daily.upper()} by {price_change_daily}% today."
                 print("message_daily: ", message_daily)
                 log_and_notify(error_message=message_daily,
-                            title_message="NV Invest Bot",
-                            sub_title="Alert",
-                            SLACK_CHANNEL_ID=MONDAY_PRICE_VOLATILITY_SLACK_CHANNEL
-                            )
+                               title_message="NV Invest Bot",
+                               sub_title="Alert",
+                               SLACK_CHANNEL_ID=MONDAY_PRICE_VOLATILITY_SLACK_CHANNEL
+                               )
             else:
                 print("price_change_daily: ", price_change_daily)
 
-            
     response['success'] = True
     return response
+
     
 
 
@@ -235,12 +244,16 @@ def process_boards(boards):
 def activate_nv_invest_bot():
 
     response = {'error': None, 'data': None, 'message': None, 'success': False}
+    start = datetime.now()
+    print("start: ", start)
 
     # Fetch available tokens
     available_tokens, status = get_list_of_coins()
     if status != 200:
         response['error'] = 'Error asking for available tokens on CoinGecko'
-        log_and_notify(error_message='Error getting available tokens on CoinGecko')
+        log_and_notify(error_message='Error getting available tokens on CoinGecko',
+                       SLACK_CHANNEL_ID=MONDAY_AUTOMATIONS_SLACK_CHANNEL
+                       )
         return response
 
     print('Available tokens on Coingecko', len(available_tokens))
@@ -249,7 +262,9 @@ def activate_nv_invest_bot():
     boards_data = get_all_boards(search_param='master')
     if not boards_data['success']:
         response['error'] = boards_data['error']
-        log_and_notify(error_message=f"Fail getting Monday Dashboard: {boards_data['error']}")
+        log_and_notify(error_message=f"Failure getting Monday boards: {boards_data['error']}",
+                       SLACK_CHANNEL_ID=MONDAY_AUTOMATIONS_SLACK_CHANNEL
+                       )
         return response
 
     boards = boards_data['data']
@@ -257,7 +272,9 @@ def activate_nv_invest_bot():
     boards_result = process_boards(boards=boards)
     if not boards_data['success']:
         response['error'] = boards_result['error']
-        log_and_notify(error_message=boards_result['error'])
+        log_and_notify(error_message=boards_result['error'],
+                       SLACK_CHANNEL_ID=MONDAY_AUTOMATIONS_SLACK_CHANNEL
+                       )
         return response
 
     board_ids = [board['id'] for board in boards]
@@ -271,11 +288,12 @@ def activate_nv_invest_bot():
         board_items_data = get_board_item_general(board_ids=batch)
         if not board_items_data['success']:
             response['error'] = board_items_data['error']
-            log_and_notify(error_message=board_items_data['error'])
+            log_and_notify(error_message=board_items_data['error'],
+                           SLACK_CHANNEL_ID=MONDAY_AUTOMATIONS_SLACK_CHANNEL
+                           )
         all_items.extend(board_items_data['data'])
    
     print('All found tokens', len(all_items))
-    # save_to_json(obj_list=all_items, filename="tokens.json")
 
     # Process each item in the board
     for item in all_items:
@@ -287,14 +305,11 @@ def activate_nv_invest_bot():
 
         if data:
             for token in data:
-                res = process_coins(token, available_tokens, board_name, board_id)   
-                # if not res['success']: 
-                #     for user_id in users_ids:
-                #         create_notification(user_id=user_id,
-                #                             item_id=res['item_id'],
-                #                             value=res['error']
-                #                             )
+                process_coins(token, available_tokens, board_name, board_id)   
 
+    end = datetime.now()
+    print('Time spent:', end - start)   
+             
     response['data'] = all_items
     response['success'] = True
     return response
