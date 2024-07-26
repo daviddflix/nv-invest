@@ -35,10 +35,10 @@ def log_and_notify(error_message,
                          sub_title="Error", 
                          SLACK_CHANNEL_ID=MONDAY_TP_ALERTS):
     print('--- Error message to send: ', error_message)
-    # send_INFO_message_to_slack_channel(channel_id=SLACK_CHANNEL_ID, 
-    #                                    title_message=title_message, 
-    #                                    sub_title=sub_title,
-    #                                    message=error_message)
+    send_INFO_message_to_slack_channel(channel_id=SLACK_CHANNEL_ID, 
+                                       title_message=title_message, 
+                                       sub_title=sub_title,
+                                       message=error_message)
 
 
 # Process each token
