@@ -62,6 +62,25 @@ class Alert(Base):
         return {column.name: getattr(self, column.name) for column in self.__table__.columns}
 
 class Board(Base):
+    """
+    SQLAlchemy model for the 'monday_board' table.
+
+    This class represents the structure of the 'monday_board' table in the database and provides an 
+    interface for interacting with board records. It includes information about each board, such as 
+    its name, unique identifier, and timestamps for creation and updates.
+
+    Attributes:
+        board_id (int): The primary key of the board, auto-incremented.
+        board_name (str): The name of the board, cannot be null.
+        monday_board_id (int): The unique identifier for the board, cannot be null.
+        created_at (datetime): The timestamp when the board was created, default is the current time.
+        updated_at (datetime): The timestamp when the board was last updated, default is the current time,
+            automatically updated on changes.
+
+    Methods:
+        as_dict():
+            Returns a dictionary representation of the board's attributes.
+    """
     __tablename__ = 'monday_board'
     board_id = Column(Integer, primary_key=True, autoincrement=True)
     board_name = Column(String, nullable=False)

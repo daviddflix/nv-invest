@@ -268,6 +268,7 @@ def activate_nv_invest_bot():
         return response
 
     boards = boards_data['data']
+    print("boards", boards)
     # Saves to DB
     boards_result = process_boards(boards=boards)
     if not boards_data['success']:
@@ -315,5 +316,3 @@ def activate_nv_invest_bot():
     return response
 
 
-
-# activate_nv_invest_bot()
