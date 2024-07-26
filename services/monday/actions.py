@@ -27,6 +27,25 @@ def SUM(*args):
 
 # Get all private board, if search param is passed, the board that match the param will be return
 def get_all_boards(search_param=None, board_kind='private'):
+    """
+    Retrieve all private boards, with optional filtering by a search parameter.
+
+    This function queries a Monday.com API to get all boards of a specified kind 
+    (default is 'private'). If a search parameter is provided, only the boards 
+    whose names contain the search parameter (case-insensitive) will be returned.
+
+    Parameters:
+    search_param (str, optional): The term to filter board names by. Defaults to None.
+    board_kind (str, optional): The kind of boards to retrieve (e.g., 'private', 'public'). 
+                                Defaults to 'private'.
+
+    Returns:
+    dict: A dictionary containing the result of the operation:
+          - 'error' (str or None): Error message if an error occurred, else None.
+          - 'success' (bool): True if the operation was successful, False otherwise.
+          - 'data' (list or None): A list of boards if successful, else None.
+    """
+    
     query = f"""
     query {{
       boards(board_kind: {board_kind}, limit: 200) {{
@@ -275,6 +294,19 @@ def get_board_item_general_test(board_ids, limit=500):
 
 # Creates a new notification in the Monday Notification center - MONDAY NATIVE API
 def create_notification(user_id, item_id, value):
+    """
+    Creates a new notification in the Monday.com Notification center using the MONDAY NATIVE API.
+
+    This function sends a GraphQL mutation to create a notification for a specified user and item.
+
+    Parameters:
+    user_id (int): The ID of the user to notify.
+    item_id (int): The ID of the item to associate with the notification.
+    value (str): The text content of the notification.
+
+    Returns:
+    bool: True if the notification was created successfully, False otherwise.
+    """
 
     new_query = f'''
             mutation {{
@@ -291,7 +323,7 @@ def create_notification(user_id, item_id, value):
 
     try:
         response = requests.post(monday_url, headers=headers, json={'query': new_query})
-       
+        print('\n--- create_notification_response ---', response.content)
         if response.status_code == 200:
             return True
         else:
@@ -521,15 +553,31 @@ def change_column_value(item_id, board_id, column_id, value):
 
 
 
-# Updates the item with a new message - MONDAY LIBRARY
 def write_new_update(item_id, value):
+    """
+    Updates the item with a new message using the MONDAY LIBRARY.
+
+    This function attempts to create a new update for a given item ID with the provided value.
+    It uses the `monday_client` to interact with the Monday.com API.
+
+    Args:
+        item_id (int): The ID of the item to be updated.
+        value (str): The value of the update to be written.
+
+    Returns:
+        bool: True if the update was successfully created, False otherwise.
+    """
     try:
+        # Create a new update for the specified item
         update = monday_client.updates.create_update(item_id=item_id, update_value=value)
+        print('\nUpdate Monday Item:', update)
+        # Check if the update was successfully created
         if 'data' in update and update['data']['create_update']['id']:
             return True
         else:
             return False
     except Exception as e:
+        # Handle any exceptions that occur during the update process
         print(f"Error writing new update: {str(e)}")
         return False
     
